@@ -110,15 +110,19 @@ public class GameCommands
         ctx.Game.player.setPosition(x, y, z);
     }
 
-    [MinecraftCommand("summon", aliases: "spawn", description: "spawns mobs", usage: "/summon <entity name>")]
-    public void Summon(CommandContext ctx, string name)
+    [MinecraftCommand("summon", aliases: "spawn", description: "spawns mobs", usage: "/summon <entity name> <count>")]
+    public void Summon(CommandContext ctx, string name, int count = 1)
     {
         var p = ctx.Game.player;
-        var ent = EntityRegistry.createEntityAt(name, ctx.Game.world, (float)p.x, (float)p.y, (float)p.z);
 
-        if (ent == null)
+        for (int i = 0; i < count; i++)
         {
-            Console.Error.WriteLine($"Entity created by createEntityInWorld is null `{name}`");
+            var ent = EntityRegistry.createEntityAt(name, ctx.Game.world, (float)p.x, (float)p.y, (float)p.z);
+
+            if (ent == null)
+            {
+                Console.Error.WriteLine($"Entity created by createEntityInWorld is null `{name}`");
+            }
         }
     }
 
