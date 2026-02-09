@@ -30,7 +30,7 @@ namespace betareborn.Entities
             base.renderParticle(var1, var2, var3, var4, var5, var6, var7);
         }
 
-        public override float getBrightnessAtEyes(float var1)
+        public override float getEntityBrightness(float var1)
         {
             float var2 = ((float)particleAge + var1) / (float)particleMaxAge;
             if (var2 < 0.0F)
@@ -43,11 +43,11 @@ namespace betareborn.Entities
                 var2 = 1.0F;
             }
 
-            float var3 = base.getBrightnessAtEyes(var1);
+            float var3 = base.getEntityBrightness(var1);
             return var3 * var2 + (1.0F - var2);
         }
 
-        public override void tick()
+        public override void onUpdate()
         {
             prevX = x;
             prevY = y;
@@ -57,7 +57,7 @@ namespace betareborn.Entities
                 markDead();
             }
 
-            move(velocityX, velocityY, velocityZ);
+            moveEntity(velocityX, velocityY, velocityZ);
             velocityX *= (double)0.96F;
             velocityY *= (double)0.96F;
             velocityZ *= (double)0.96F;

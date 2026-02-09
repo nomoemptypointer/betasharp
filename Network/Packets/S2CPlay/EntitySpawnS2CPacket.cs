@@ -53,7 +53,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onEntitySpawn(this);
+            var1.handleVehicleSpawn(this);
         }
 
         public override int size()

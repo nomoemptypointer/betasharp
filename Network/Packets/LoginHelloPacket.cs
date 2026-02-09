@@ -40,7 +40,7 @@ namespace betareborn.Network.Packets
 
         public override void apply(NetHandler var1)
         {
-            var1.onHello(this);
+            var1.handleLogin(this);
         }
 
         public override int size()

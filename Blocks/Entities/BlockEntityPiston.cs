@@ -100,7 +100,7 @@ namespace betareborn.Blocks.Entities
                     pushedEntities.AddRange(var4);
                     foreach (Entity var6 in pushedEntities)
                     {
-                        var6.move(
+                        var6.moveEntity(
                             (double)(entityMoveMultiplier * PistonConstants.HEAD_OFFSET_X[facing]),
                             (double)(entityMoveMultiplier * PistonConstants.HEAD_OFFSET_Y[facing]),
                             (double)(entityMoveMultiplier * PistonConstants.HEAD_OFFSET_Z[facing])

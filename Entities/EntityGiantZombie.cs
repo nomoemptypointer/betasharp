@@ -9,7 +9,7 @@ namespace betareborn.Entities
         public EntityGiantZombie(World var1) : base(var1)
         {
             texture = "/mob/zombie.png";
-            movementSpeed = 0.5F;
+            moveSpeed = 0.5F;
             attackStrength = 50;
             health *= 10;
             standingEyeHeight *= 6.0F;

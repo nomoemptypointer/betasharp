@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.S2CPlay
@@ -11,15 +12,6 @@ namespace betareborn.Network.Packets.S2CPlay
         public int zLocation;
         public int instrumentType;
         public int pitch;
-
-        public PlayNoteSoundS2CPacket(int x, int y, int z, int instrument, int pitch)
-        {
-            xLocation = x;
-            yLocation = y;
-            zLocation = z;
-            instrumentType = instrument;
-            this.pitch = pitch;
-        }
 
         public override void read(DataInputStream var1)
         {
@@ -41,7 +33,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onPlayNoteSound(this);
+            var1.handleNotePlay(this);
         }
 
         public override int size()

@@ -8,33 +8,28 @@ namespace betareborn.Inventorys
     public class InventoryPlayer : java.lang.Object, IInventory
     {
 
-        public ItemStack[] main = new ItemStack[36];
-        public ItemStack[] armor = new ItemStack[4];
-        public int selectedSlot = 0;
+        public ItemStack[] mainInventory = new ItemStack[36];
+        public ItemStack[] armorInventory = new ItemStack[4];
+        public int currentItem = 0;
         public EntityPlayer player;
-        private ItemStack cursorStack;
-        public bool dirty = false;
+        private ItemStack itemStack;
+        public bool inventoryChanged = false;
 
         public InventoryPlayer(EntityPlayer var1)
         {
             player = var1;
         }
 
-        public static int getHotbarSize()
+        public ItemStack getCurrentItem()
         {
-            return 9;
-        }
-
-        public ItemStack getSelectedItem()
-        {
-            return selectedSlot < 9 && selectedSlot >= 0 ? main[selectedSlot] : null;
+            return currentItem < 9 && currentItem >= 0 ? mainInventory[currentItem] : null;
         }
 
         private int getInventorySlotContainItem(int var1)
         {
-            for (int var2 = 0; var2 < main.Length; ++var2)
+            for (int var2 = 0; var2 < mainInventory.Length; ++var2)
             {
-                if (main[var2] != null && main[var2].itemId == var1)
+                if (mainInventory[var2] != null && mainInventory[var2].itemID == var1)
                 {
                     return var2;
                 }
@@ -45,9 +40,9 @@ namespace betareborn.Inventorys
 
         private int storeItemStack(ItemStack var1)
         {
-            for (int var2 = 0; var2 < main.Length; ++var2)
+            for (int var2 = 0; var2 < mainInventory.Length; ++var2)
             {
-                if (main[var2] != null && main[var2].itemId == var1.itemId && main[var2].isStackable() && main[var2].count < main[var2].getMaxCount() && main[var2].count < getMaxCountPerStack() && (!main[var2].getHasSubtypes() || main[var2].getDamage() == var1.getDamage()))
+                if (mainInventory[var2] != null && mainInventory[var2].itemID == var1.itemID && mainInventory[var2].isStackable() && mainInventory[var2].count < mainInventory[var2].getMaxCount() && mainInventory[var2].count < getMaxCountPerStack() && (!mainInventory[var2].getHasSubtypes() || mainInventory[var2].getDamage() == var1.getDamage()))
                 {
                     return var2;
                 }
@@ -58,9 +53,9 @@ namespace betareborn.Inventorys
 
         private int getFirstEmptyStack()
         {
-            for (int var1 = 0; var1 < main.Length; ++var1)
+            for (int var1 = 0; var1 < mainInventory.Length; ++var1)
             {
-                if (main[var1] == null)
+                if (mainInventory[var1] == null)
                 {
                     return var1;
                 }
@@ -74,7 +69,7 @@ namespace betareborn.Inventorys
             int var3 = getInventorySlotContainItem(var1);
             if (var3 >= 0 && var3 < 9)
             {
-                selectedSlot = var3;
+                currentItem = var3;
             }
         }
 
@@ -90,20 +85,20 @@ namespace betareborn.Inventorys
                 var1 = -1;
             }
 
-            for (selectedSlot -= var1; selectedSlot < 0; selectedSlot += 9)
+            for (currentItem -= var1; currentItem < 0; currentItem += 9)
             {
             }
 
-            while (selectedSlot >= 9)
+            while (currentItem >= 9)
             {
-                selectedSlot -= 9;
+                currentItem -= 9;
             }
 
         }
 
         private int storePartialItemStack(ItemStack var1)
         {
-            int var2 = var1.itemId;
+            int var2 = var1.itemID;
             int var3 = var1.count;
             int var4 = storeItemStack(var1);
             if (var4 < 0)
@@ -117,20 +112,20 @@ namespace betareborn.Inventorys
             }
             else
             {
-                if (main[var4] == null)
+                if (mainInventory[var4] == null)
                 {
-                    main[var4] = new ItemStack(var2, 0, var1.getDamage());
+                    mainInventory[var4] = new ItemStack(var2, 0, var1.getDamage());
                 }
 
                 int var5 = var3;
-                if (var3 > main[var4].getMaxCount() - main[var4].count)
+                if (var3 > mainInventory[var4].getMaxCount() - mainInventory[var4].count)
                 {
-                    var5 = main[var4].getMaxCount() - main[var4].count;
+                    var5 = mainInventory[var4].getMaxCount() - mainInventory[var4].count;
                 }
 
-                if (var5 > getMaxCountPerStack() - main[var4].count)
+                if (var5 > getMaxCountPerStack() - mainInventory[var4].count)
                 {
-                    var5 = getMaxCountPerStack() - main[var4].count;
+                    var5 = getMaxCountPerStack() - mainInventory[var4].count;
                 }
 
                 if (var5 == 0)
@@ -140,8 +135,8 @@ namespace betareborn.Inventorys
                 else
                 {
                     var3 -= var5;
-                    main[var4].count += var5;
-                    main[var4].bobbingAnimationTime = 5;
+                    mainInventory[var4].count += var5;
+                    mainInventory[var4].bobbingAnimationTime = 5;
                     return var3;
                 }
             }
@@ -149,11 +144,11 @@ namespace betareborn.Inventorys
 
         public void inventoryTick()
         {
-            for (int var1 = 0; var1 < main.Length; ++var1)
+            for (int var1 = 0; var1 < mainInventory.Length; ++var1)
             {
-                if (main[var1] != null)
+                if (mainInventory[var1] != null)
                 {
-                    main[var1].inventoryTick(player.world, player, var1, selectedSlot == var1);
+                    mainInventory[var1].inventoryTick(player.world, player, var1, currentItem == var1);
                 }
             }
 
@@ -168,9 +163,9 @@ namespace betareborn.Inventorys
             }
             else
             {
-                if (--main[var2].count <= 0)
+                if (--mainInventory[var2].count <= 0)
                 {
-                    main[var2] = null;
+                    mainInventory[var2] = null;
                 }
 
                 return true;
@@ -185,8 +180,8 @@ namespace betareborn.Inventorys
                 var2 = getFirstEmptyStack();
                 if (var2 >= 0)
                 {
-                    main[var2] = ItemStack.clone(var1);
-                    main[var2].bobbingAnimationTime = 5;
+                    mainInventory[var2] = ItemStack.clone(var1);
+                    mainInventory[var2].bobbingAnimationTime = 5;
                     var1.count = 0;
                     return true;
                 }
@@ -209,11 +204,11 @@ namespace betareborn.Inventorys
 
         public ItemStack removeStack(int var1, int var2)
         {
-            ItemStack[] var3 = main;
-            if (var1 >= main.Length)
+            ItemStack[] var3 = mainInventory;
+            if (var1 >= mainInventory.Length)
             {
-                var3 = armor;
-                var1 -= main.Length;
+                var3 = armorInventory;
+                var1 -= mainInventory.Length;
             }
 
             if (var3[var1] != null)
@@ -244,11 +239,11 @@ namespace betareborn.Inventorys
 
         public void setStack(int var1, ItemStack var2)
         {
-            ItemStack[] var3 = main;
+            ItemStack[] var3 = mainInventory;
             if (var1 >= var3.Length)
             {
                 var1 -= var3.Length;
-                var3 = armor;
+                var3 = armorInventory;
             }
 
             var3[var1] = var2;
@@ -257,9 +252,9 @@ namespace betareborn.Inventorys
         public float getStrVsBlock(Block var1)
         {
             float var2 = 1.0F;
-            if (main[selectedSlot] != null)
+            if (mainInventory[currentItem] != null)
             {
-                var2 *= main[selectedSlot].getMiningSpeedMultiplier(var1);
+                var2 *= mainInventory[currentItem].getMiningSpeedMultiplier(var1);
             }
 
             return var2;
@@ -269,24 +264,24 @@ namespace betareborn.Inventorys
         {
             int var2;
             NBTTagCompound var3;
-            for (var2 = 0; var2 < main.Length; ++var2)
+            for (var2 = 0; var2 < mainInventory.Length; ++var2)
             {
-                if (main[var2] != null)
+                if (mainInventory[var2] != null)
                 {
                     var3 = new NBTTagCompound();
                     var3.setByte("Slot", (sbyte)var2);
-                    main[var2].writeToNBT(var3);
+                    mainInventory[var2].writeToNBT(var3);
                     var1.setTag(var3);
                 }
             }
 
-            for (var2 = 0; var2 < armor.Length; ++var2)
+            for (var2 = 0; var2 < armorInventory.Length; ++var2)
             {
-                if (armor[var2] != null)
+                if (armorInventory[var2] != null)
                 {
                     var3 = new NBTTagCompound();
                     var3.setByte("Slot", (sbyte)(var2 + 100));
-                    armor[var2].writeToNBT(var3);
+                    armorInventory[var2].writeToNBT(var3);
                     var1.setTag(var3);
                 }
             }
@@ -296,8 +291,8 @@ namespace betareborn.Inventorys
 
         public void readFromNBT(NBTTagList var1)
         {
-            main = new ItemStack[36];
-            armor = new ItemStack[4];
+            mainInventory = new ItemStack[36];
+            armorInventory = new ItemStack[4];
 
             for (int var2 = 0; var2 < var1.tagCount(); ++var2)
             {
@@ -306,14 +301,14 @@ namespace betareborn.Inventorys
                 ItemStack var5 = new ItemStack(var3);
                 if (var5.getItem() != null)
                 {
-                    if (var4 >= 0 && var4 < main.Length)
+                    if (var4 >= 0 && var4 < mainInventory.Length)
                     {
-                        main[var4] = var5;
+                        mainInventory[var4] = var5;
                     }
 
-                    if (var4 >= 100 && var4 < armor.Length + 100)
+                    if (var4 >= 100 && var4 < armorInventory.Length + 100)
                     {
-                        armor[var4 - 100] = var5;
+                        armorInventory[var4 - 100] = var5;
                     }
                 }
             }
@@ -322,16 +317,16 @@ namespace betareborn.Inventorys
 
         public int size()
         {
-            return main.Length + 4;
+            return mainInventory.Length + 4;
         }
 
         public ItemStack getStack(int var1)
         {
-            ItemStack[] var2 = main;
+            ItemStack[] var2 = mainInventory;
             if (var1 >= var2.Length)
             {
                 var1 -= var2.Length;
-                var2 = armor;
+                var2 = armorInventory;
             }
 
             return var2[var1];
@@ -349,7 +344,7 @@ namespace betareborn.Inventorys
 
         public int getDamageVsEntity(Entity var1)
         {
-            ItemStack var2 = getStack(selectedSlot);
+            ItemStack var2 = getStack(currentItem);
             return var2 != null ? var2.getAttackDamage(var1) : 1;
         }
 
@@ -361,14 +356,14 @@ namespace betareborn.Inventorys
             }
             else
             {
-                ItemStack var2 = getStack(selectedSlot);
+                ItemStack var2 = getStack(currentItem);
                 return var2 != null ? var2.isSuitableFor(var1) : false;
             }
         }
 
         public ItemStack armorItemInSlot(int var1)
         {
-            return armor[var1];
+            return armorInventory[var1];
         }
 
         public int getTotalArmorValue()
@@ -377,16 +372,16 @@ namespace betareborn.Inventorys
             int var2 = 0;
             int var3 = 0;
 
-            for (int var4 = 0; var4 < armor.Length; ++var4)
+            for (int var4 = 0; var4 < armorInventory.Length; ++var4)
             {
-                if (armor[var4] != null && armor[var4].getItem() is ItemArmor)
+                if (armorInventory[var4] != null && armorInventory[var4].getItem() is ItemArmor)
                 {
-                    int var5 = armor[var4].getMaxDamage();
-                    int var6 = armor[var4].getDamage2();
+                    int var5 = armorInventory[var4].getMaxDamage();
+                    int var6 = armorInventory[var4].getDamage2();
                     int var7 = var5 - var6;
                     var2 += var7;
                     var3 += var5;
-                    int var8 = ((ItemArmor)armor[var4].getItem()).damageReduceAmount;
+                    int var8 = ((ItemArmor)armorInventory[var4].getItem()).damageReduceAmount;
                     var1 += var8;
                 }
             }
@@ -403,15 +398,15 @@ namespace betareborn.Inventorys
 
         public void damageArmor(int var1)
         {
-            for (int var2 = 0; var2 < armor.Length; ++var2)
+            for (int var2 = 0; var2 < armorInventory.Length; ++var2)
             {
-                if (armor[var2] != null && armor[var2].getItem() is ItemArmor)
+                if (armorInventory[var2] != null && armorInventory[var2].getItem() is ItemArmor)
                 {
-                    armor[var2].damageItem(var1, player);
-                    if (armor[var2].count == 0)
+                    armorInventory[var2].damageItem(var1, player);
+                    if (armorInventory[var2].count == 0)
                     {
-                        armor[var2].onRemoved(player);
-                        armor[var2] = null;
+                        armorInventory[var2].onRemoved(player);
+                        armorInventory[var2] = null;
                     }
                 }
             }
@@ -421,21 +416,21 @@ namespace betareborn.Inventorys
         public void dropInventory()
         {
             int var1;
-            for (var1 = 0; var1 < main.Length; ++var1)
+            for (var1 = 0; var1 < mainInventory.Length; ++var1)
             {
-                if (main[var1] != null)
+                if (mainInventory[var1] != null)
                 {
-                    player.dropItem(main[var1], true);
-                    main[var1] = null;
+                    player.dropItem(mainInventory[var1], true);
+                    mainInventory[var1] = null;
                 }
             }
 
-            for (var1 = 0; var1 < armor.Length; ++var1)
+            for (var1 = 0; var1 < armorInventory.Length; ++var1)
             {
-                if (armor[var1] != null)
+                if (armorInventory[var1] != null)
                 {
-                    player.dropItem(armor[var1], true);
-                    armor[var1] = null;
+                    player.dropItem(armorInventory[var1], true);
+                    armorInventory[var1] = null;
                 }
             }
 
@@ -443,39 +438,39 @@ namespace betareborn.Inventorys
 
         public void markDirty()
         {
-            dirty = true;
+            inventoryChanged = true;
         }
 
         public void setItemStack(ItemStack var1)
         {
-            cursorStack = var1;
+            itemStack = var1;
             player.onCursorStackChanged(var1);
         }
 
-        public ItemStack getCursorStack()
+        public ItemStack getItemStack()
         {
-            return cursorStack;
+            return itemStack;
         }
 
         public bool canPlayerUse(EntityPlayer var1)
         {
-            return player.dead ? false : var1.getSquaredDistance(player) <= 64.0D;
+            return player.isDead ? false : var1.getDistanceSqToEntity(player) <= 64.0D;
         }
 
-        public bool contains(ItemStack var1)
+        public bool func_28018_c(ItemStack var1)
         {
             int var2;
-            for (var2 = 0; var2 < armor.Length; ++var2)
+            for (var2 = 0; var2 < armorInventory.Length; ++var2)
             {
-                if (armor[var2] != null && armor[var2].equals(var1))
+                if (armorInventory[var2] != null && armorInventory[var2].equals(var1))
                 {
                     return true;
                 }
             }
 
-            for (var2 = 0; var2 < main.Length; ++var2)
+            for (var2 = 0; var2 < mainInventory.Length; ++var2)
             {
-                if (main[var2] != null && main[var2].equals(var1))
+                if (mainInventory[var2] != null && mainInventory[var2].equals(var1))
                 {
                     return true;
                 }

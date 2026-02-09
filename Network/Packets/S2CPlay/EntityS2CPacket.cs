@@ -27,7 +27,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onEntity(this);
+            var1.handleEntity(this);
         }
 
         public override int size()

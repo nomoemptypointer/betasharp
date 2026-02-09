@@ -52,8 +52,8 @@ namespace betareborn.Worlds
         public bool isNewWorld;
         public readonly Dimension dimension;
         protected List<IWorldAccess> eventListeners;
-        protected ChunkSource chunkSource;
-        protected readonly WorldStorage storage;
+        protected ChunkSource chunkProvider;
+        protected readonly WorldStorage saveHandler;
         protected WorldProperties properties;
         public bool eventProcessingEnabled;
         private bool allPlayersSleeping;
@@ -106,12 +106,12 @@ namespace betareborn.Worlds
             soundCounter = random.nextInt(12000);
             tempEntityList = [];
             isRemote = false;
-            storage = var1;
+            saveHandler = var1;
             properties = new WorldProperties(var4, var2);
             dimension = var3;
             persistentStateManager = new PersistentStateManager(var1);
             var3.setWorld(this);
-            chunkSource = createChunkCache();
+            chunkProvider = createChunkCache();
             updateSkyBrightness();
             prepareWeather();
         }
@@ -149,12 +149,12 @@ namespace betareborn.Worlds
             tempEntityList = [];
             isRemote = false;
             lockTimestamp = var1.lockTimestamp;
-            storage = var1.storage;
+            saveHandler = var1.saveHandler;
             properties = new WorldProperties(var1.properties);
-            persistentStateManager = new PersistentStateManager(storage);
+            persistentStateManager = new PersistentStateManager(saveHandler);
             dimension = var2;
             var2.setWorld(this);
-            chunkSource = createChunkCache();
+            chunkProvider = createChunkCache();
             updateSkyBrightness();
             prepareWeather();
         }
@@ -195,7 +195,7 @@ namespace betareborn.Worlds
             soundCounter = random.nextInt(12000);
             tempEntityList = [];
             isRemote = false;
-            storage = var1;
+            saveHandler = var1;
             persistentStateManager = new PersistentStateManager(var1);
             properties = var1.loadProperties();
             isNewWorld = properties == null;
@@ -224,7 +224,7 @@ namespace betareborn.Worlds
             }
 
             dimension.setWorld(this);
-            chunkSource = createChunkCache();
+            chunkProvider = createChunkCache();
             if (var6)
             {
                 initializeSpawnPoint();
@@ -236,7 +236,7 @@ namespace betareborn.Worlds
 
         protected virtual ChunkSource createChunkCache()
         {
-            ChunkStorage var1 = storage.getChunkStorage(dimension);
+            ChunkStorage var1 = saveHandler.getChunkStorage(dimension);
             return new ChunkCache(this, (RegionChunkStorage)var1, dimension.createChunkGenerator());
         }
 
@@ -296,7 +296,7 @@ namespace betareborn.Worlds
                 NBTTagCompound var2 = properties.getPlayerNBTTagCompound();
                 if (var2 != null)
                 {
-                    player.read(var2);
+                    player.readFromNBT(var2);
                     properties.setPlayerNBTTagCompound((NBTTagCompound)null);
                 }
 
@@ -311,7 +311,7 @@ namespace betareborn.Worlds
 
         public void saveWithLoadingDisplay(bool saveEntities, LoadingDisplay loadingDisplay)
         {
-            if (chunkSource.canSave())
+            if (chunkProvider.canSave())
             {
                 if (loadingDisplay != null)
                 {
@@ -327,7 +327,7 @@ namespace betareborn.Worlds
                 }
 
                 Profiler.Start("saveChunks");
-                chunkSource.save(saveEntities, loadingDisplay);
+                chunkProvider.save(saveEntities, loadingDisplay);
                 Profiler.Stop("saveChunks");
             }
         }
@@ -338,7 +338,7 @@ namespace betareborn.Worlds
             //checkSessionLock();
             Profiler.Stop("checkSessionLock");
             Profiler.Start("saveWorldInfoAndPlayer");
-            storage.save(properties, players);
+            saveHandler.save(properties, players);
             Profiler.Stop("saveWorldInfoAndPlayer");
 
             Profiler.Start("saveAllData");
@@ -348,7 +348,7 @@ namespace betareborn.Worlds
 
         public bool attemptSaving(int i)
         {
-            if (!chunkSource.canSave())
+            if (!chunkProvider.canSave())
             {
                 return true;
             }
@@ -359,7 +359,7 @@ namespace betareborn.Worlds
                     save();
                 }
 
-                return chunkSource.save(false, (LoadingDisplay)null);
+                return chunkProvider.save(false, (LoadingDisplay)null);
             }
         }
 
@@ -415,7 +415,7 @@ namespace betareborn.Worlds
 
         private bool hasChunk(int x, int z)
         {
-            return chunkSource.isChunkLoaded(x, z);
+            return chunkProvider.isChunkLoaded(x, z);
         }
 
         public Chunk getChunkFromPos(int x, int z)
@@ -425,7 +425,7 @@ namespace betareborn.Worlds
 
         public Chunk getChunk(int chunkX, int chunkZ)
         {
-            return chunkSource.getChunk(chunkX, chunkZ);
+            return chunkProvider.getChunk(chunkX, chunkZ);
         }
 
         public virtual bool setBlockWithoutNotifyingNeighbors(int x, int y, int z, int blockId, int meta)
@@ -1138,7 +1138,7 @@ namespace betareborn.Worlds
 
         }
 
-        public virtual bool spawnGlobalEntity(Entity entity)
+        public bool spawnGlobalEntity(Entity entity)
         {
             globalEntities.add(entity);
             return true;
@@ -1196,12 +1196,12 @@ namespace betareborn.Worlds
         {
             if (entity.passenger != null)
             {
-                entity.passenger.setVehicle((Entity)null);
+                entity.passenger.mountEntity((Entity)null);
             }
 
             if (entity.vehicle != null)
             {
-                entity.setVehicle((Entity)null);
+                entity.mountEntity((Entity)null);
             }
 
             entity.markDead();
@@ -1282,7 +1282,7 @@ namespace betareborn.Worlds
                     collidingBoundingBoxes.Add(var13.Value);
                 }
 
-                var13 = entity.getCollisionAgainstShape(var15[var16]);
+                var13 = entity.getCollisionBox(var15[var16]);
                 if (var13 != null && var13.Value.intersects(box))
                 {
                     collidingBoundingBoxes.Add(var13.Value);
@@ -1530,8 +1530,8 @@ namespace betareborn.Worlds
             for (var1 = 0; var1 < globalEntities.size(); ++var1)
             {
                 var2 = (Entity)globalEntities.get(var1);
-                var2.tick();
-                if (var2.dead)
+                var2.onUpdate();
+                if (var2.isDead)
                 {
                     globalEntities.remove(var1--);
                 }
@@ -1574,7 +1574,7 @@ namespace betareborn.Worlds
                 var2 = entities[var1];
                 if (var2.vehicle != null)
                 {
-                    if (!var2.vehicle.dead && var2.vehicle.passenger == var2)
+                    if (!var2.vehicle.isDead && var2.vehicle.passenger == var2)
                     {
                         continue;
                     }
@@ -1583,12 +1583,12 @@ namespace betareborn.Worlds
                     var2.vehicle = null;
                 }
 
-                if (!var2.dead)
+                if (!var2.isDead)
                 {
                     updateEntity(var2);
                 }
 
-                if (var2.dead)
+                if (var2.isDead)
                 {
                     var3 = var2.chunkX;
                     var4 = var2.chunkZ;
@@ -1668,7 +1668,7 @@ namespace betareborn.Worlds
             updateEntity(entity, true);
         }
 
-        public virtual void updateEntity(Entity entity, bool requireLoaded)
+        public void updateEntity(Entity entity, bool requireLoaded)
         {
             int var3 = MathHelper.floor_double(entity.x);
             int var4 = MathHelper.floor_double(entity.z);
@@ -1684,11 +1684,11 @@ namespace betareborn.Worlds
                 {
                     if (entity.vehicle != null)
                     {
-                        entity.tickRiding();
+                        entity.updateRidden();
                     }
                     else
                     {
-                        entity.tick();
+                        entity.onUpdate();
                     }
                 }
 
@@ -1740,7 +1740,7 @@ namespace betareborn.Worlds
 
                 if (requireLoaded && entity.isPersistent && entity.passenger != null)
                 {
-                    if (!entity.passenger.dead && entity.passenger.vehicle == entity)
+                    if (!entity.passenger.isDead && entity.passenger.vehicle == entity)
                     {
                         updateEntity(entity.passenger);
                     }
@@ -1761,7 +1761,7 @@ namespace betareborn.Worlds
             for (int var3 = 0; var3 < var2.Count; ++var3)
             {
                 Entity var4 = var2[var3];
-                if (!var4.dead && var4.preventEntitySpawning)
+                if (!var4.isDead && var4.preventEntitySpawning)
                 {
                     return false;
                 }
@@ -1997,10 +1997,10 @@ namespace betareborn.Worlds
 
         public Explosion createExplosion(Entity source, double x, double y, double z, float power)
         {
-            return createExplosion(source, x, y, z, power, false);
+            return newExplosion(source, x, y, z, power, false);
         }
 
-        public virtual Explosion createExplosion(Entity source, double x, double y, double z, float power, bool fire)
+        public Explosion newExplosion(Entity source, double x, double y, double z, float power, bool fire)
         {
             Explosion var10 = new(this, source, x, y, z, power);
             var10.isFlaming = fire;
@@ -2091,7 +2091,7 @@ namespace betareborn.Worlds
 
         public string getDebugInfo()
         {
-            return chunkSource.getDebugInfo();
+            return chunkProvider.getDebugInfo();
         }
 
         public BlockEntity getBlockEntity(int x, int y, int z)
@@ -2313,7 +2313,7 @@ namespace betareborn.Worlds
             NaturalSpawner.performSpawning(this, spawnHostileMobs, spawnPeacefulMobs);
             Profiler.Stop("performSpawning");
             Profiler.Start("unload100OldestChunks");
-            chunkSource.tick();
+            chunkProvider.tick();
             Profiler.Stop("unload100OldestChunks");
 
             Profiler.Start("updateSkylightSubtracted");
@@ -2336,7 +2336,7 @@ namespace betareborn.Worlds
                 saveWithLoadingDisplay(false, (LoadingDisplay)null);
                 Profiler.PopGroup();
 
-                chunkSource.markChunksForUnload(renderDistance);
+                chunkProvider.markChunksForUnload(renderDistance);
             }
 
             properties.setWorldTime(var2);
@@ -2734,7 +2734,7 @@ namespace betareborn.Worlds
 
         public void tickChunks()
         {
-            while (chunkSource.tick())
+            while (chunkProvider.tick())
             {
             }
 
@@ -2855,7 +2855,7 @@ namespace betareborn.Worlds
         {
             for (int var2 = 0; var2 < players.size(); ++var2)
             {
-                if (name.Equals(((EntityPlayer)players.get(var2)).name))
+                if (name.Equals(((EntityPlayer)players.get(var2)).username))
                 {
                     return (EntityPlayer)players.get(var2);
                 }
@@ -2979,7 +2979,7 @@ namespace betareborn.Worlds
 
         public void checkSessionLock()
         {
-            storage.checkSessionLock();
+            saveHandler.checkSessionLock();
         }
 
         public void setTime(long time)
@@ -3011,7 +3011,7 @@ namespace betareborn.Worlds
             return properties.getTime();
         }
 
-        public Vec3i getSpawnPos()
+        public Vec3i getSpawnPoint()
         {
             return new Vec3i(properties.getSpawnX(), properties.getSpawnY(), properties.getSpawnZ());
         }
@@ -3042,12 +3042,12 @@ namespace betareborn.Worlds
 
         }
 
-        public virtual bool canInteract(EntityPlayer player, int x, int y, int z)
+        public bool canInteract(EntityPlayer player, int x, int y, int z)
         {
             return true;
         }
 
-        public virtual void broadcastEntityEvent(Entity entity, byte @event)
+        public void broadcastEntityEvent(Entity entity, byte @event)
         {
         }
 
@@ -3085,7 +3085,7 @@ namespace betareborn.Worlds
                 var2 = entities[var1];
                 if (var2.vehicle != null)
                 {
-                    if (!var2.vehicle.dead && var2.vehicle.passenger == var2)
+                    if (!var2.vehicle.isDead && var2.vehicle.passenger == var2)
                     {
                         continue;
                     }
@@ -3094,7 +3094,7 @@ namespace betareborn.Worlds
                     var2.vehicle = null;
                 }
 
-                if (var2.dead)
+                if (var2.isDead)
                 {
                     var3 = var2.chunkX;
                     var4 = var2.chunkZ;
@@ -3112,10 +3112,10 @@ namespace betareborn.Worlds
 
         public ChunkSource getChunkSource()
         {
-            return chunkSource;
+            return chunkProvider;
         }
 
-        public virtual void playNoteBlockActionAt(int x, int y, int z, int soundType, int pitch)
+        public void playNoteBlockActionAt(int x, int y, int z, int soundType, int pitch)
         {
             int var6 = getBlockId(x, y, z);
             if (var6 > 0)

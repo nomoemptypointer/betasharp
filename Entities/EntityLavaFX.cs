@@ -23,7 +23,7 @@ namespace betareborn.Entities
             particleTextureIndex = 49;
         }
 
-        public override float getBrightnessAtEyes(float var1)
+        public override float getEntityBrightness(float var1)
         {
             return 1.0F;
         }
@@ -35,7 +35,7 @@ namespace betareborn.Entities
             base.renderParticle(var1, var2, var3, var4, var5, var6, var7);
         }
 
-        public override void tick()
+        public override void onUpdate()
         {
             prevX = x;
             prevY = y;
@@ -52,7 +52,7 @@ namespace betareborn.Entities
             }
 
             velocityY -= 0.03D;
-            move(velocityX, velocityY, velocityZ);
+            moveEntity(velocityX, velocityY, velocityZ);
             velocityX *= (double)0.999F;
             velocityY *= (double)0.999F;
             velocityZ *= (double)0.999F;

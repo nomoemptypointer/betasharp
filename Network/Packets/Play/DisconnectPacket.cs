@@ -30,7 +30,7 @@ namespace betareborn.Network.Packets.Play
 
         public override void apply(NetHandler var1)
         {
-            var1.onDisconnect(this);
+            var1.handleKickDisconnect(this);
         }
 
         public override int size()

@@ -35,16 +35,16 @@ namespace betareborn.Entities
             standingEyeHeight = height / 2.0F;
         }
 
-        protected override bool bypassesSteppingEffects()
+        protected override bool canTriggerWalking()
         {
             return false;
         }
 
-        protected override void initDataTracker()
+        protected override void entityInit()
         {
         }
 
-        public override Box? getCollisionAgainstShape(Entity var1)
+        public override Box? getCollisionBox(Entity var1)
         {
             return var1.boundingBox;
         }
@@ -54,7 +54,7 @@ namespace betareborn.Entities
             return boundingBox;
         }
 
-        public override bool isPushable()
+        public override bool canBePushed()
         {
             return true;
         }
@@ -70,35 +70,35 @@ namespace betareborn.Entities
             prevZ = var6;
         }
 
-        public override double getPassengerRidingHeight()
+        public override double getMountedYOffset()
         {
             return (double)height * 0.0D - (double)0.3F;
         }
 
         public override bool damage(Entity var1, int var2)
         {
-            if (!world.isRemote && !dead)
+            if (!world.isRemote && !isDead)
             {
                 boatRockDirection = -boatRockDirection;
                 boatTimeSinceHit = 10;
                 boatCurrentDamage += var2 * 10;
-                scheduleVelocityUpdate();
+                setBeenAttacked();
                 if (boatCurrentDamage > 40)
                 {
                     if (passenger != null)
                     {
-                        passenger.setVehicle(this);
+                        passenger.mountEntity(this);
                     }
 
                     int var3;
                     for (var3 = 0; var3 < 3; ++var3)
                     {
-                        dropItem(Block.PLANKS.id, 1, 0.0F);
+                        dropItemWithOffset(Block.PLANKS.id, 1, 0.0F);
                     }
 
                     for (var3 = 0; var3 < 2; ++var3)
                     {
-                        dropItem(Item.STICK.id, 1, 0.0F);
+                        dropItemWithOffset(Item.STICK.id, 1, 0.0F);
                     }
 
                     markDead();
@@ -112,19 +112,19 @@ namespace betareborn.Entities
             }
         }
 
-        public override void animateHurt()
+        public override void performHurtAnimation()
         {
             boatRockDirection = -boatRockDirection;
             boatTimeSinceHit = 10;
             boatCurrentDamage += boatCurrentDamage * 10;
         }
 
-        public override bool isCollidable()
+        public override bool canBeCollidedWith()
         {
-            return !dead;
+            return !isDead;
         }
 
-        public override void setPositionAndAnglesAvoidEntities(double var1, double var3, double var5, float var7, float var8, int var9)
+        public override void setPositionAndRotation2(double var1, double var3, double var5, float var7, float var8, int var9)
         {
             field_9393_e = var1;
             field_9392_f = var3;
@@ -137,16 +137,16 @@ namespace betareborn.Entities
             velocityZ = field_9386_l;
         }
 
-        public override void setVelocityClient(double var1, double var3, double var5)
+        public override void setVelocity(double var1, double var3, double var5)
         {
             field_9388_j = velocityX = var1;
             field_9387_k = velocityY = var3;
             field_9386_l = velocityZ = var5;
         }
 
-        public override void tick()
+        public override void onUpdate()
         {
-            base.tick();
+            base.onUpdate();
             if (boatTimeSinceHit > 0)
             {
                 --boatTimeSinceHit;
@@ -271,7 +271,7 @@ namespace betareborn.Entities
                     velocityZ *= 0.5D;
                 }
 
-                move(velocityX, velocityY, velocityZ);
+                moveEntity(velocityX, velocityY, velocityZ);
                 var6 = java.lang.Math.sqrt(velocityX * velocityX + velocityZ * velocityZ);
                 if (var6 > 0.15D)
                 {
@@ -308,12 +308,12 @@ namespace betareborn.Entities
                         int var22;
                         for (var22 = 0; var22 < 3; ++var22)
                         {
-                            dropItem(Block.PLANKS.id, 1, 0.0F);
+                            dropItemWithOffset(Block.PLANKS.id, 1, 0.0F);
                         }
 
                         for (var22 = 0; var22 < 2; ++var22)
                         {
-                            dropItem(Item.STICK.id, 1, 0.0F);
+                            dropItemWithOffset(Item.STICK.id, 1, 0.0F);
                         }
                     }
                 }
@@ -362,9 +362,9 @@ namespace betareborn.Entities
                     for (var24 = 0; var24 < var16.Count; ++var24)
                     {
                         Entity var18 = var16[var24];
-                        if (var18 != passenger && var18.isPushable() && var18 is EntityBoat)
+                        if (var18 != passenger && var18.canBePushed() && var18 is EntityBoat)
                         {
-                            var18.onCollision(this);
+                            var18.applyEntityCollision(this);
                         }
                     }
                 }
@@ -380,7 +380,7 @@ namespace betareborn.Entities
                     }
                 }
 
-                if (passenger != null && passenger.dead)
+                if (passenger != null && passenger.isDead)
                 {
                     passenger = null;
                 }
@@ -388,13 +388,13 @@ namespace betareborn.Entities
             }
         }
 
-        public override void updatePassengerPosition()
+        public override void updateRiderPosition()
         {
             if (passenger != null)
             {
                 double var1 = java.lang.Math.cos((double)yaw * java.lang.Math.PI / 180.0D) * 0.4D;
                 double var3 = java.lang.Math.sin((double)yaw * java.lang.Math.PI / 180.0D) * 0.4D;
-                passenger.setPosition(x + var1, y + getPassengerRidingHeight() + passenger.getStandingEyeHeight(), z + var3);
+                passenger.setPosition(x + var1, y + getMountedYOffset() + passenger.getYOffset(), z + var3);
             }
         }
 
@@ -421,7 +421,7 @@ namespace betareborn.Entities
             {
                 if (!world.isRemote)
                 {
-                    var1.setVehicle(this);
+                    var1.mountEntity(this);
                 }
 
                 return true;

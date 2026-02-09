@@ -13,7 +13,7 @@ namespace betareborn.Recipes
 
         public ShapedRecipes(int var1, int var2, ItemStack[] var3, ItemStack var4)
         {
-            recipeOutputItemID = var4.itemId;
+            recipeOutputItemID = var4.itemID;
             recipeWidth = var1;
             recipeHeight = var2;
             recipeItems = var3;
@@ -75,7 +75,7 @@ namespace betareborn.Recipes
                             return false;
                         }
 
-                        if (var9.itemId != var10.itemId)
+                        if (var9.itemID != var10.itemID)
                         {
                             return false;
                         }
@@ -93,7 +93,7 @@ namespace betareborn.Recipes
 
         public ItemStack getCraftingResult(InventoryCrafting var1)
         {
-            return new ItemStack(recipeOutput.itemId, recipeOutput.count, recipeOutput.getDamage());
+            return new ItemStack(recipeOutput.itemID, recipeOutput.count, recipeOutput.getDamage());
         }
 
         public int getRecipeSize()

@@ -21,26 +21,26 @@ namespace betareborn.Entities
         public ClientPlayerEntity(Minecraft var1, World var2, Session var3, int var4) : base(var2)
         {
             mc = var1;
-            dimensionId = var4;
+            dimension = var4;
             if (var3 != null && var3.username != null && var3.username.Length > 0)
             {
                 skinUrl = "http://s3.amazonaws.com/MinecraftSkins/" + var3.username + ".png";
             }
 
-            name = var3.username;
+            username = var3.username;
         }
 
-        public override void move(double var1, double var3, double var5)
+        public override void moveEntity(double var1, double var3, double var5)
         {
-            base.move(var1, var3, var5);
+            base.moveEntity(var1, var3, var5);
         }
 
         public override void tickLiving()
         {
             base.tickLiving();
-            sidewaysSpeed = movementInput.moveStrafe;
-            forwardSpeed = movementInput.moveForward;
-            jumping = movementInput.jump;
+            moveStrafing = movementInput.moveStrafe;
+            moveForward = movementInput.moveForward;
+            isJumping = movementInput.jump;
         }
 
         public override void tickMovement()
@@ -50,12 +50,12 @@ namespace betareborn.Entities
                 mc.guiAchievement.queueAchievementInformation(Achievements.OPEN_INVENTORY);
             }
 
-            lastScreenDistortion = changeDimensionCooldown;
-            if (inTeleportationState)
+            prevTimeInPortal = timeInPortal;
+            if (inPortal)
             {
                 if (!world.isRemote && vehicle != null)
                 {
-                    setVehicle((Entity)null);
+                    mountEntity((Entity)null);
                 }
 
                 if (mc.currentScreen != null)
@@ -63,41 +63,41 @@ namespace betareborn.Entities
                     mc.displayGuiScreen((GuiScreen)null);
                 }
 
-                if (changeDimensionCooldown == 0.0F)
+                if (timeInPortal == 0.0F)
                 {
                     mc.sndManager.playSoundFX("portal.trigger", 1.0F, random.nextFloat() * 0.4F + 0.8F);
                 }
 
-                changeDimensionCooldown += 0.0125F;
-                if (changeDimensionCooldown >= 1.0F)
+                timeInPortal += 0.0125F;
+                if (timeInPortal >= 1.0F)
                 {
-                    changeDimensionCooldown = 1.0F;
+                    timeInPortal = 1.0F;
                     if (!world.isRemote)
                     {
-                        portalCooldown = 10;
+                        timeUntilPortal = 10;
                         mc.sndManager.playSoundFX("portal.travel", 1.0F, random.nextFloat() * 0.4F + 0.8F);
                         mc.usePortal();
                     }
                 }
 
-                inTeleportationState = false;
+                inPortal = false;
             }
             else
             {
-                if (changeDimensionCooldown > 0.0F)
+                if (timeInPortal > 0.0F)
                 {
-                    changeDimensionCooldown -= 0.05F;
+                    timeInPortal -= 0.05F;
                 }
 
-                if (changeDimensionCooldown < 0.0F)
+                if (timeInPortal < 0.0F)
                 {
-                    changeDimensionCooldown = 0.0F;
+                    timeInPortal = 0.0F;
                 }
             }
 
-            if (portalCooldown > 0)
+            if (timeUntilPortal > 0)
             {
-                --portalCooldown;
+                --timeUntilPortal;
             }
 
             movementInput.updatePlayerMoveState(this);
@@ -135,9 +135,9 @@ namespace betareborn.Entities
             score = var1.getInteger("Score");
         }
 
-        public override void closeHandledScreen()
+        public override void closeScreen()
         {
-            base.closeHandledScreen();
+            base.closeScreen();
             mc.displayGuiScreen(null);
         }
 
@@ -178,7 +178,7 @@ namespace betareborn.Entities
 
         public virtual void sendChatMessage(string message)
         {
-            mc.ingameGUI.addChatMessage($"<{name}> {message}");
+            mc.ingameGUI.addChatMessage($"<{username}> {message}");
         }
 
         public override bool isSneaking()
@@ -194,14 +194,14 @@ namespace betareborn.Entities
                 health = var1;
                 if (var2 < 0)
                 {
-                    hearts = maxHealth / 2;
+                    hearts = heartsHalvesLife / 2;
                 }
             }
             else
             {
                 field_9346_af = var2;
-                lastHealth = health;
-                hearts = maxHealth;
+                prevHealth = health;
+                hearts = heartsHalvesLife;
                 applyDamage(var2);
                 hurtTime = maxHurtTime = 10;
             }

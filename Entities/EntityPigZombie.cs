@@ -15,20 +15,20 @@ namespace betareborn.Entities
         public EntityPigZombie(World var1) : base(var1)
         {
             texture = "/mob/pigzombie.png";
-            movementSpeed = 0.5F;
+            moveSpeed = 0.5F;
             attackStrength = 5;
             isImmuneToFire = true;
         }
 
-        public override void tick()
+        public override void onUpdate()
         {
-            movementSpeed = playerToAttack != null ? 0.95F : 0.5F;
+            moveSpeed = playerToAttack != null ? 0.95F : 0.5F;
             if (randomSoundDelay > 0 && --randomSoundDelay == 0)
             {
                 world.playSound(this, "mob.zombiepig.zpigangry", getSoundVolume() * 2.0F, ((random.nextFloat() - random.nextFloat()) * 0.2F + 1.0F) * 1.8F);
             }
 
-            base.tick();
+            base.onUpdate();
         }
 
         public override bool canSpawn()

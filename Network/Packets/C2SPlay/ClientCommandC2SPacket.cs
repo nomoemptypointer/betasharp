@@ -1,4 +1,5 @@
 using betareborn.Entities;
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.C2SPlay
@@ -8,7 +9,7 @@ namespace betareborn.Network.Packets.C2SPlay
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(ClientCommandC2SPacket).TypeHandle);
 
         public int entityId;
-        public int mode;
+        public int state;
 
         public ClientCommandC2SPacket()
         {
@@ -16,25 +17,25 @@ namespace betareborn.Network.Packets.C2SPlay
 
         public ClientCommandC2SPacket(Entity var1, int var2)
         {
-            entityId = var1.id;
-            mode = var2;
+            entityId = var1.entityId;
+            state = var2;
         }
 
         public override void read(DataInputStream var1)
         {
             entityId = var1.readInt();
-            mode = (sbyte)var1.readByte();
+            state = (sbyte)var1.readByte();
         }
 
         public override void write(DataOutputStream var1)
         {
             var1.writeInt(entityId);
-            var1.writeByte(mode);
+            var1.writeByte(state);
         }
 
         public override void apply(NetHandler var1)
         {
-            var1.handleClientCommand(this);
+            var1.func_21147_a(this);
         }
 
         public override int size()

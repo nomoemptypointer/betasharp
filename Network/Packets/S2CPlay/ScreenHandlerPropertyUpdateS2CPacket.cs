@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.S2CPlay
@@ -6,34 +7,27 @@ namespace betareborn.Network.Packets.S2CPlay
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(ScreenHandlerPropertyUpdateS2CPacket).TypeHandle);
 
-        public int syncId;
-        public int propertyId;
-        public int value;
-
-        public ScreenHandlerPropertyUpdateS2CPacket(int syncId, int propertyId, int value)
-        {
-            this.syncId = syncId;
-            this.propertyId = propertyId;
-            this.value = value;
-        }
+        public int windowId;
+        public int progressBar;
+        public int progressBarValue;
 
         public override void apply(NetHandler var1)
         {
-            var1.onScreenHandlerPropertyUpdate(this);
+            var1.func_20090_a(this);
         }
 
         public override void read(DataInputStream var1)
         {
-            syncId = (sbyte)var1.readByte();
-            propertyId = var1.readShort();
-            value = var1.readShort();
+            windowId = (sbyte)var1.readByte();
+            progressBar = var1.readShort();
+            progressBarValue = var1.readShort();
         }
 
         public override void write(DataOutputStream var1)
         {
-            var1.writeByte(syncId);
-            var1.writeShort(propertyId);
-            var1.writeShort(value);
+            var1.writeByte(windowId);
+            var1.writeShort(progressBar);
+            var1.writeShort(progressBarValue);
         }
 
         public override int size()

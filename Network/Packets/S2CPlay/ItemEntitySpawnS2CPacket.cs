@@ -26,8 +26,8 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public ItemEntitySpawnS2CPacket(EntityItem var1)
         {
-            entityId = var1.id;
-            itemID = var1.item.itemId;
+            entityId = var1.entityId;
+            itemID = var1.item.itemID;
             count = var1.item.count;
             itemDamage = var1.item.getDamage();
             xPosition = MathHelper.floor_double(var1.x * 32.0D);
@@ -68,7 +68,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onItemEntitySpawn(this);
+            var1.handlePickupSpawn(this);
         }
 
         public override int size()

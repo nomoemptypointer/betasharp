@@ -21,26 +21,26 @@ namespace betareborn.Entities
         {
             texture = "/mob/wolf.png";
             setBoundingBoxSpacing(0.8F, 0.8F);
-            movementSpeed = 1.1F;
+            moveSpeed = 1.1F;
             health = 8;
         }
 
-        protected override void initDataTracker()
+        protected override void entityInit()
         {
-            base.initDataTracker();
+            base.entityInit();
             dataWatcher.addObject(16, java.lang.Byte.valueOf((byte)0));
             dataWatcher.addObject(17, new JString(""));
             dataWatcher.addObject(18, new java.lang.Integer(health));
         }
 
-        protected override bool bypassesSteppingEffects()
+        protected override bool canTriggerWalking()
         {
             return false;
         }
 
-        public override string getTexture()
+        public override string getEntityTexture()
         {
-            return isWolfTamed() ? "/mob/wolf_tame.png" : (isWolfAngry() ? "/mob/wolf_angry.png" : base.getTexture());
+            return isWolfTamed() ? "/mob/wolf_tame.png" : (isWolfAngry() ? "/mob/wolf_angry.png" : base.getEntityTexture());
         }
 
         public override void writeNbt(NBTTagCompound var1)
@@ -111,7 +111,7 @@ namespace betareborn.Entities
                 EntityPlayer var3 = world.getPlayer(getWolfOwner());
                 if (var3 != null)
                 {
-                    float var2 = var3.getDistance(this);
+                    float var2 = var3.getDistanceToEntity(this);
                     if (var2 > 5.0F)
                     {
                         getPathOrWalkableBlock(var3, var2);
@@ -153,22 +153,22 @@ namespace betareborn.Entities
                 if (var1 is EntityPlayer)
                 {
                     EntityPlayer var2 = (EntityPlayer)var1;
-                    ItemStack var3 = var2.inventory.getSelectedItem();
+                    ItemStack var3 = var2.inventory.getCurrentItem();
                     if (var3 != null)
                     {
-                        if (!isWolfTamed() && var3.itemId == Item.BONE.id)
+                        if (!isWolfTamed() && var3.itemID == Item.BONE.id)
                         {
                             looksWithInterest = true;
                         }
-                        else if (isWolfTamed() && Item.ITEMS[var3.itemId] is ItemFood)
+                        else if (isWolfTamed() && Item.ITEMS[var3.itemID] is ItemFood)
                         {
-                            looksWithInterest = ((ItemFood)Item.ITEMS[var3.itemId]).getIsWolfsFavoriteMeat();
+                            looksWithInterest = ((ItemFood)Item.ITEMS[var3.itemID]).getIsWolfsFavoriteMeat();
                         }
                     }
                 }
             }
 
-            if (!interpolateOnly && isWolfShaking && !field_25052_g && !hasPath() && onGround)
+            if (!isMultiplayerEntity && isWolfShaking && !field_25052_g && !hasPath() && onGround)
             {
                 field_25052_g = true;
                 timeWolfIsShaking = 0.0F;
@@ -178,9 +178,9 @@ namespace betareborn.Entities
 
         }
 
-        public override void tick()
+        public override void onUpdate()
         {
-            base.tick();
+            base.onUpdate();
             field_25054_c = field_25048_b;
             if (looksWithInterest)
             {
@@ -193,7 +193,7 @@ namespace betareborn.Entities
 
             if (looksWithInterest)
             {
-                lookTimer = 10;
+                numTicksToChaseTarget = 10;
             }
 
             if (isWet())
@@ -357,7 +357,7 @@ namespace betareborn.Entities
                 }
                 else if (var1 != this && var1 != null)
                 {
-                    if (isWolfTamed() && var1 is EntityPlayer && ((EntityPlayer)var1).name.Equals(getWolfOwner(), StringComparison.OrdinalIgnoreCase))
+                    if (isWolfTamed() && var1 is EntityPlayer && ((EntityPlayer)var1).username.Equals(getWolfOwner(), StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -404,15 +404,15 @@ namespace betareborn.Entities
 
         public override bool interact(EntityPlayer var1)
         {
-            ItemStack var2 = var1.inventory.getSelectedItem();
+            ItemStack var2 = var1.inventory.getCurrentItem();
             if (!isWolfTamed())
             {
-                if (var2 != null && var2.itemId == Item.BONE.id && !isWolfAngry())
+                if (var2 != null && var2.itemID == Item.BONE.id && !isWolfAngry())
                 {
                     --var2.count;
                     if (var2.count <= 0)
                     {
-                        var1.inventory.setStack(var1.inventory.selectedSlot, (ItemStack)null);
+                        var1.inventory.setStack(var1.inventory.currentItem, (ItemStack)null);
                     }
 
                     if (!world.isRemote)
@@ -423,7 +423,7 @@ namespace betareborn.Entities
                             setPathToEntity((PathEntity)null);
                             setWolfSitting(true);
                             health = 20;
-                            setWolfOwner(var1.name);
+                            setWolfOwner(var1.username);
                             showHeartsOrSmokeFX(true);
                             world.broadcastEntityEvent(this, (byte)7);
                         }
@@ -439,15 +439,15 @@ namespace betareborn.Entities
             }
             else
             {
-                if (var2 != null && Item.ITEMS[var2.itemId] is ItemFood)
+                if (var2 != null && Item.ITEMS[var2.itemID] is ItemFood)
                 {
-                    ItemFood var3 = (ItemFood)Item.ITEMS[var2.itemId];
+                    ItemFood var3 = (ItemFood)Item.ITEMS[var2.itemID];
                     if (var3.getIsWolfsFavoriteMeat() && dataWatcher.getWatchableObjectInt(18) < 20)
                     {
                         --var2.count;
                         if (var2.count <= 0)
                         {
-                            var1.inventory.setStack(var1.inventory.selectedSlot, (ItemStack)null);
+                            var1.inventory.setStack(var1.inventory.currentItem, (ItemStack)null);
                         }
 
                         heal(((ItemFood)Item.RAW_PORKCHOP).getHealAmount());
@@ -455,12 +455,12 @@ namespace betareborn.Entities
                     }
                 }
 
-                if (var1.name.Equals(getWolfOwner(), StringComparison.OrdinalIgnoreCase))
+                if (var1.username.Equals(getWolfOwner(), StringComparison.OrdinalIgnoreCase))
                 {
                     if (!world.isRemote)
                     {
                         setWolfSitting(!isWolfSitting());
-                        jumping = false;
+                        isJumping = false;
                         setPathToEntity((PathEntity)null);
                     }
 
@@ -489,7 +489,7 @@ namespace betareborn.Entities
 
         }
 
-        public override void processServerEntityStatus(sbyte var1)
+        public override void handleHealthUpdate(sbyte var1)
         {
             if (var1 == 7)
             {
@@ -507,7 +507,7 @@ namespace betareborn.Entities
             }
             else
             {
-                base.processServerEntityStatus(var1);
+                base.handleHealthUpdate(var1);
             }
 
         }

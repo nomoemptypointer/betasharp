@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.S2CPlay
@@ -6,27 +7,22 @@ namespace betareborn.Network.Packets.S2CPlay
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(GameStateChangeS2CPacket).TypeHandle);
 
-        public static readonly string[] REASONS = new string[] { "tile.bed.notValid", null, null };
-        public int reason;
-
-        public GameStateChangeS2CPacket(int reason)
-        {
-            this.reason = reason;
-        }
+        public static readonly string[] field_25020_a = new string[] { "tile.bed.notValid", null, null };
+        public int field_25019_b;
 
         public override void read(DataInputStream var1)
         {
-            reason = (sbyte)var1.readByte();
+            field_25019_b = (sbyte)var1.readByte();
         }
 
         public override void write(DataOutputStream var1)
         {
-            var1.writeByte(reason);
+            var1.writeByte(field_25019_b);
         }
 
         public override void apply(NetHandler var1)
         {
-            var1.onGameStateChange(this);
+            var1.func_25118_a(this);
         }
 
         public override int size()

@@ -20,16 +20,16 @@ namespace betareborn.Entities
         {
             if (isInWater())
             {
-                moveNonSolid(var1, var2, 0.02F);
-                move(velocityX, velocityY, velocityZ);
+                moveFlying(var1, var2, 0.02F);
+                moveEntity(velocityX, velocityY, velocityZ);
                 velocityX *= (double)0.8F;
                 velocityY *= (double)0.8F;
                 velocityZ *= (double)0.8F;
             }
-            else if (isTouchingLava())
+            else if (handleLavaMovement())
             {
-                moveNonSolid(var1, var2, 0.02F);
-                move(velocityX, velocityY, velocityZ);
+                moveFlying(var1, var2, 0.02F);
+                moveEntity(velocityX, velocityY, velocityZ);
                 velocityX *= 0.5D;
                 velocityY *= 0.5D;
                 velocityZ *= 0.5D;
@@ -48,7 +48,7 @@ namespace betareborn.Entities
                 }
 
                 float var8 = 0.16277136F / (var3 * var3 * var3);
-                moveNonSolid(var1, var2, onGround ? 0.1F * var8 : 0.02F);
+                moveFlying(var1, var2, onGround ? 0.1F * var8 : 0.02F);
                 var3 = 0.91F;
                 if (onGround)
                 {
@@ -60,7 +60,7 @@ namespace betareborn.Entities
                     }
                 }
 
-                move(velocityX, velocityY, velocityZ);
+                moveEntity(velocityX, velocityY, velocityZ);
                 velocityX *= (double)var3;
                 velocityY *= (double)var3;
                 velocityZ *= (double)var3;

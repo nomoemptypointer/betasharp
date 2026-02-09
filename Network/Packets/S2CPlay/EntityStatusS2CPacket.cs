@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.S2CPlay
@@ -8,12 +9,6 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public int entityId;
         public sbyte entityStatus;
-
-        public EntityStatusS2CPacket(int entityId, byte status)
-        {
-            this.entityId = entityId;
-            entityStatus = (sbyte)status;
-        }
 
         public override void read(DataInputStream var1)
         {
@@ -29,7 +24,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onEntityStatus(this);
+            var1.func_9447_a(this);
         }
 
         public override int size()

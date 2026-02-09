@@ -56,7 +56,7 @@ namespace betareborn.Network.Packets.Play
 
         public override void apply(NetHandler networkHandler)
         {
-            networkHandler.handleUpdateSign(this);
+            networkHandler.handleSignUpdate(this);
         }
 
         public override int size()

@@ -8,7 +8,7 @@ namespace betareborn.Network.Packets.Play
 
         public PlayerMoveLookAndOnGroundPacket()
         {
-            changeLook = true;
+            rotating = true;
         }
 
         public PlayerMoveLookAndOnGroundPacket(float var1, float var2, bool var3)
@@ -16,7 +16,7 @@ namespace betareborn.Network.Packets.Play
             yaw = var1;
             pitch = var2;
             onGround = var3;
-            changeLook = true;
+            rotating = true;
         }
 
         public override void read(DataInputStream var1)

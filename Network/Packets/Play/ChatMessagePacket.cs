@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.Play
@@ -6,7 +7,7 @@ namespace betareborn.Network.Packets.Play
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(ChatMessagePacket).TypeHandle);
 
-        public string chatMessage;
+        public string message;
 
         public ChatMessagePacket()
         {
@@ -19,27 +20,27 @@ namespace betareborn.Network.Packets.Play
                 var1 = var1.Substring(0, 119);
             }
 
-            chatMessage = var1;
+            message = var1;
         }
 
         public override void read(DataInputStream var1)
         {
-            chatMessage = readString(var1, 119);
+            message = readString(var1, 119);
         }
 
         public override void write(DataOutputStream var1)
         {
-            writeString(chatMessage, var1);
+            writeString(message, var1);
         }
 
         public override void apply(NetHandler var1)
         {
-            var1.onChatMessage(this);
+            var1.handleChat(this);
         }
 
         public override int size()
         {
-            return chatMessage.Length;
+            return message.Length;
         }
     }
 

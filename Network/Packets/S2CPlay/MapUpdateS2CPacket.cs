@@ -41,7 +41,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onMapUpdate(this);
+            var1.func_28116_a(this);
         }
 
         public override int size()

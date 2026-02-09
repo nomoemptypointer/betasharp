@@ -21,7 +21,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public override void apply(NetHandler var1)
         {
-            var1.onWorldTimeUpdate(this);
+            var1.handleUpdateTime(this);
         }
 
         public override int size()

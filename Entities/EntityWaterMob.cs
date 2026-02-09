@@ -3,7 +3,7 @@ using betareborn.Worlds;
 
 namespace betareborn.Entities
 {
-    public class EntityWaterMob : EntityCreature, SpawnableEntity
+    public class EntityWaterMob : EntityCreature
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(EntityWaterMob).TypeHandle);
 

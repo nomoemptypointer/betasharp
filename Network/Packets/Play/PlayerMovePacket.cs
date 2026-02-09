@@ -1,3 +1,4 @@
+using betareborn.Network.Packets;
 using java.io;
 
 namespace betareborn.Network.Packets.Play
@@ -7,15 +8,15 @@ namespace betareborn.Network.Packets.Play
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(PlayerMovePacket).TypeHandle);
 
-        public double x;
-        public double y;
-        public double z;
-        public double eyeHeight;
+        public double xPosition;
+        public double yPosition;
+        public double zPosition;
+        public double stance;
         public float yaw;
         public float pitch;
         public bool onGround;
-        public bool changePosition;
-        public bool changeLook;
+        public bool moving;
+        public bool rotating;
 
         public PlayerMovePacket()
         {
@@ -28,7 +29,7 @@ namespace betareborn.Network.Packets.Play
 
         public override void apply(NetHandler var1)
         {
-            var1.onPlayerMove(this);
+            var1.handleFlying(this);
         }
 
         public override void read(DataInputStream var1)
