@@ -8,25 +8,15 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public EntityRotateAndMoveRelativeS2CPacket()
         {
-            rotate = true;
-        }
-
-        public EntityRotateAndMoveRelativeS2CPacket(int entityId, byte deltaX, byte deltaY, byte deltaZ, byte yaw, byte pitch) : base(entityId)
-        {
-            this.deltaX = (sbyte)deltaX;
-            this.deltaY = (sbyte)deltaY;
-            this.deltaZ = (sbyte)deltaZ;
-            this.yaw = (sbyte)yaw;
-            this.pitch = (sbyte)pitch;
-            this.rotate = true;
+            rotating = true;
         }
 
         public override void read(DataInputStream var1)
         {
             base.read(var1);
-            deltaX = (sbyte)var1.readByte();
-            deltaY = (sbyte)var1.readByte();
-            deltaZ = (sbyte)var1.readByte();
+            xPosition = (sbyte)var1.readByte();
+            yPosition = (sbyte)var1.readByte();
+            zPosition = (sbyte)var1.readByte();
             yaw = (sbyte)var1.readByte();
             pitch = (sbyte)var1.readByte();
         }
@@ -34,9 +24,9 @@ namespace betareborn.Network.Packets.S2CPlay
         public override void write(DataOutputStream var1)
         {
             base.write(var1);
-            var1.writeByte(deltaX);
-            var1.writeByte(deltaY);
-            var1.writeByte(deltaZ);
+            var1.writeByte(xPosition);
+            var1.writeByte(yPosition);
+            var1.writeByte(zPosition);
             var1.writeByte(yaw);
             var1.writeByte(pitch);
         }

@@ -3,22 +3,22 @@ using betareborn.Blocks.Entities;
 using betareborn.Entities;
 using betareborn.Network.Packets;
 using betareborn.Network.Packets.S2CPlay;
-using betareborn.Util;
 using betareborn.Util.Maths;
 using betareborn.Worlds;
 using java.lang;
+using java.util;
 
 namespace betareborn.Server
 {
     public class ChunkMap
     {
-        public List<ServerPlayerEntity> players = [];
-        private readonly LongObjectHashMap chunkMapping = new();
-        private readonly List<TrackedChunk> chunksToUpdate = [];
+        public List players = new ArrayList();
+        private LongObjectHashMap chunkMapping = new LongObjectHashMap();
+        private List chunksToUpdate = new ArrayList();
         private MinecraftServer server;
-        private readonly int dimensionId;
-        private readonly int viewDistance;
-        private readonly int[][] DIRECTIONS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+        private int dimensionId;
+        private int viewDistance;
+        private readonly int[][] DIRECTIONS = new int[][] { { 1, 0 }, { 0, 1 }, { -1, 0 }, { 0, -1 } };
 
         public ChunkMap(MinecraftServer server, int dimensionId, int viewRadius)
         {
@@ -32,7 +32,7 @@ namespace betareborn.Server
             }
             else
             {
-                viewDistance = viewRadius;
+                this.viewDistance = viewRadius;
                 this.server = server;
                 this.dimensionId = dimensionId;
             }
@@ -40,27 +40,27 @@ namespace betareborn.Server
 
         public ServerWorld getWorld()
         {
-            return server.getWorld(dimensionId);
+            return this.server.getWorld(this.dimensionId);
         }
 
         public void updateChunks()
         {
-            for (int var1 = 0; var1 < chunksToUpdate.Count; var1++)
+            for (int var1 = 0; var1 < this.chunksToUpdate.size(); var1++)
             {
-                chunksToUpdate[var1].updateChunk();
+                ((ChunkMap__TrackedChunk)this.chunksToUpdate.get(var1)).updateChunk();
             }
 
-            chunksToUpdate.Clear();
+            this.chunksToUpdate.clear();
         }
 
-        private TrackedChunk getOrCreateChunk(int chunkX, int chunkZ, bool createIfAbsent)
+        private ChunkMap__TrackedChunk getOrCreateChunk(int chunkX, int chunkZ, boolean createIfAbsent)
         {
             long var4 = chunkX + 2147483647L | chunkZ + 2147483647L << 32;
-            TrackedChunk var6 = (TrackedChunk)chunkMapping.get(var4);
+            ChunkMap__TrackedChunk var6 = (ChunkMap__TrackedChunk)this.chunkMapping.get(var4);
             if (var6 == null && createIfAbsent)
             {
-                var6 = new TrackedChunk(this, chunkX, chunkZ);
-                chunkMapping.put(var4, var6);
+                var6 = new ChunkMap__TrackedChunk(this, chunkX, chunkZ);
+                this.chunkMapping.put(var4, var6);
             }
 
             return var6;
@@ -70,7 +70,7 @@ namespace betareborn.Server
         {
             int var4 = x >> 4;
             int var5 = z >> 4;
-            TrackedChunk var6 = getOrCreateChunk(var4, var5, false);
+            ChunkMap__TrackedChunk var6 = this.getOrCreateChunk(var4, var5, false);
             if (var6 != null)
             {
                 var6.updatePlayerChunks(x & 15, y, z & 15);
@@ -84,22 +84,22 @@ namespace betareborn.Server
             player.lastX = player.x;
             player.lastZ = player.z;
             int var4 = 0;
-            int var5 = viewDistance;
+            int var5 = this.viewDistance;
             int var6 = 0;
             int var7 = 0;
-            getOrCreateChunk(var2, var3, true).addPlayer(player);
+            this.getOrCreateChunk(var2, var3, true).addPlayer(player);
 
             for (int var8 = 1; var8 <= var5 * 2; var8++)
             {
                 for (int var9 = 0; var9 < 2; var9++)
                 {
-                    int[] var10 = DIRECTIONS[var4++ % 4];
+                    int[] var10 = this.DIRECTIONS[var4++ % 4];
 
                     for (int var11 = 0; var11 < var8; var11++)
                     {
                         var6 += var10[0];
                         var7 += var10[1];
-                        getOrCreateChunk(var2 + var6, var3 + var7, true).addPlayer(player);
+                        this.getOrCreateChunk(var2 + var6, var3 + var7, true).addPlayer(player);
                     }
                 }
             }
@@ -108,12 +108,12 @@ namespace betareborn.Server
 
             for (int var13 = 0; var13 < var5 * 2; var13++)
             {
-                var6 += DIRECTIONS[var4][0];
-                var7 += DIRECTIONS[var4][1];
-                getOrCreateChunk(var2 + var6, var3 + var7, true).addPlayer(player);
+                var6 += this.DIRECTIONS[var4][0];
+                var7 += this.DIRECTIONS[var4][1];
+                this.getOrCreateChunk(var2 + var6, var3 + var7, true).addPlayer(player);
             }
 
-            players.Add(player);
+            this.players.add(player);
         }
 
         public void removePlayer(ServerPlayerEntity player)
@@ -121,11 +121,11 @@ namespace betareborn.Server
             int var2 = (int)player.lastX >> 4;
             int var3 = (int)player.lastZ >> 4;
 
-            for (int var4 = var2 - viewDistance; var4 <= var2 + viewDistance; var4++)
+            for (int var4 = var2 - this.viewDistance; var4 <= var2 + this.viewDistance; var4++)
             {
-                for (int var5 = var3 - viewDistance; var5 <= var3 + viewDistance; var5++)
+                for (int var5 = var3 - this.viewDistance; var5 <= var3 + this.viewDistance; var5++)
                 {
-                    TrackedChunk var6 = getOrCreateChunk(var4, var5, false);
+                    ChunkMap__TrackedChunk var6 = this.getOrCreateChunk(var4, var5, false);
                     if (var6 != null)
                     {
                         var6.removePlayer(player);
@@ -133,14 +133,14 @@ namespace betareborn.Server
                 }
             }
 
-            players.Remove(player);
+            this.players.remove(player);
         }
 
-        private bool isWithinViewDistance(int chunkX, int chunkZ, int centerX, int centerZ)
+        private boolean isWithinViewDistance(int chunkX, int chunkZ, int centerX, int centerZ)
         {
             int var5 = chunkX - centerX;
             int var6 = chunkZ - centerZ;
-            return var5 < -viewDistance || var5 > viewDistance ? false : var6 >= -viewDistance && var6 <= viewDistance;
+            return var5 < -this.viewDistance || var5 > this.viewDistance ? false : var6 >= -this.viewDistance && var6 <= this.viewDistance;
         }
 
         public void updatePlayerChunks(ServerPlayerEntity player)
@@ -158,18 +158,18 @@ namespace betareborn.Server
                 int var13 = var3 - var11;
                 if (var12 != 0 || var13 != 0)
                 {
-                    for (int var14 = var2 - viewDistance; var14 <= var2 + viewDistance; var14++)
+                    for (int var14 = var2 - this.viewDistance; var14 <= var2 + this.viewDistance; var14++)
                     {
-                        for (int var15 = var3 - viewDistance; var15 <= var3 + viewDistance; var15++)
+                        for (int var15 = var3 - this.viewDistance; var15 <= var3 + this.viewDistance; var15++)
                         {
-                            if (!isWithinViewDistance(var14, var15, var10, var11))
+                            if (!this.isWithinViewDistance(var14, var15, var10, var11))
                             {
-                                getOrCreateChunk(var14, var15, true).addPlayer(player);
+                                this.getOrCreateChunk(var14, var15, true).addPlayer(player);
                             }
 
-                            if (!isWithinViewDistance(var14 - var12, var15 - var13, var2, var3))
+                            if (!this.isWithinViewDistance(var14 - var12, var15 - var13, var2, var3))
                             {
-                                TrackedChunk var16 = getOrCreateChunk(var14 - var12, var15 - var13, false);
+                                ChunkMap__TrackedChunk var16 = this.getOrCreateChunk(var14 - var12, var15 - var13, false);
                                 if (var16 != null)
                                 {
                                     var16.removePlayer(player);
@@ -186,17 +186,17 @@ namespace betareborn.Server
 
         public int getBlockViewDistance()
         {
-            return viewDistance * 16 - 16;
+            return this.viewDistance * 16 - 16;
         }
 
         private class TrackedChunk
         {
             private readonly ChunkMap chunkMap;
-            private readonly List<ServerPlayerEntity> players;
-            private readonly int chunkX;
-            private readonly int chunkZ;
-            private readonly ChunkPos chunkPos;
-            private readonly short[] dirtyBlocks;
+            private List players;
+            private int chunkX;
+            private int chunkZ;
+            private ChunkPos chunkPos;
+            private short[] dirtyBlocks;
             private int dirtyBlockCount;
             private int minX;
             private int minY;
@@ -208,117 +208,117 @@ namespace betareborn.Server
             public TrackedChunk(ChunkMap chunkMap, int chunkX, int chunkY)
             {
                 this.chunkMap = chunkMap;
-                players = [];
-                dirtyBlocks = new short[10];
-                dirtyBlockCount = 0;
+                this.players = new ArrayList();
+                this.dirtyBlocks = new short[10];
+                this.dirtyBlockCount = 0;
                 this.chunkX = chunkX;
-                chunkZ = chunkY;
-                chunkPos = new ChunkPos(chunkX, chunkY);
+                this.chunkZ = chunkY;
+                this.chunkPos = new ChunkPos(chunkX, chunkY);
                 chunkMap.getWorld().chunkCache.loadChunk(chunkX, chunkY);
             }
 
             public void addPlayer(ServerPlayerEntity player)
             {
-                if (players.Contains(player))
+                if (this.players.contains(player))
                 {
-                    throw new IllegalStateException("Failed to add player. " + player + " already is in chunk " + chunkX + ", " + chunkZ);
+                    throw new IllegalStateException("Failed to add player. " + player + " already is in chunk " + this.chunkX + ", " + this.chunkZ);
                 }
                 else
                 {
-                    player.activeChunks.add(chunkPos);
-                    player.networkHandler.sendPacket(new ChunkStatusUpdateS2CPacket(chunkPos.x, chunkPos.z, true));
-                    players.Add(player);
-                    player.pendingChunkUpdates.add(chunkPos);
+                    player.activeChunks.add(this.chunkPos);
+                    player.networkHandler.sendPacket(new ChunkStatusUpdateS2CPacket(this.chunkPos.x, this.chunkPos.z, true));
+                    this.players.add(player);
+                    player.pendingChunkUpdates.add(this.chunkPos);
                 }
             }
 
             public void removePlayer(ServerPlayerEntity player)
             {
-                if (players.Contains(player))
+                if (this.players.contains(player))
                 {
-                    players.Remove(player);
-                    if (players.Count == 0)
+                    this.players.remove(player);
+                    if (this.players.size() == 0)
                     {
-                        long var2 = chunkX + 2147483647L | chunkZ + 2147483647L << 32;
-                        chunkMap.chunkMapping.remove(var2);
-                        if (dirtyBlockCount > 0)
+                        long var2 = this.chunkX + 2147483647L | this.chunkZ + 2147483647L << 32;
+                        ChunkMap.m_37805459(this.f_46746473).remove(var2);
+                        if (this.dirtyBlockCount > 0)
                         {
-                            chunkMap.chunksToUpdate.Remove(this);
+                            ChunkMap.m_79544610(this.f_46746473).remove(this);
                         }
 
-                        chunkMap.getWorld().chunkCache.isLoaded(chunkX, chunkZ);
+                        chunkMap.getWorld().chunkCache.isLoaded(this.chunkX, this.chunkZ);
                     }
 
-                    player.pendingChunkUpdates.remove(chunkPos);
-                    if (player.activeChunks.contains(chunkPos))
+                    player.pendingChunkUpdates.remove(this.chunkPos);
+                    if (player.activeChunks.contains(this.chunkPos))
                     {
-                        player.networkHandler.sendPacket(new ChunkStatusUpdateS2CPacket(chunkX, chunkZ, false));
+                        player.networkHandler.sendPacket(new ChunkStatusUpdateS2CPacket(this.chunkX, this.chunkZ, false));
                     }
                 }
             }
 
             public void updatePlayerChunks(int x, int y, int z)
             {
-                if (dirtyBlockCount == 0)
+                if (this.dirtyBlockCount == 0)
                 {
-                    chunkMap.chunksToUpdate.Add(this);
-                    minX = minY = x;
-                    minZ = maxX = y;
-                    maxY = maxZ = z;
+                    ChunkMap.m_79544610(this.f_46746473).add(this);
+                    this.minX = this.minY = x;
+                    this.minZ = this.maxX = y;
+                    this.maxY = this.maxZ = z;
                 }
 
-                if (minX > x)
+                if (this.minX > x)
                 {
-                    minX = x;
+                    this.minX = x;
                 }
 
-                if (minY < x)
+                if (this.minY < x)
                 {
-                    minY = x;
+                    this.minY = x;
                 }
 
-                if (minZ > y)
+                if (this.minZ > y)
                 {
-                    minZ = y;
+                    this.minZ = y;
                 }
 
-                if (maxX < y)
+                if (this.maxX < y)
                 {
-                    maxX = y;
+                    this.maxX = y;
                 }
 
-                if (maxY > z)
+                if (this.maxY > z)
                 {
-                    maxY = z;
+                    this.maxY = z;
                 }
 
-                if (maxZ < z)
+                if (this.maxZ < z)
                 {
-                    maxZ = z;
+                    this.maxZ = z;
                 }
 
-                if (dirtyBlockCount < 10)
+                if (this.dirtyBlockCount < 10)
                 {
                     short var4 = (short)(x << 12 | z << 8 | y);
 
-                    for (int var5 = 0; var5 < dirtyBlockCount; var5++)
+                    for (int var5 = 0; var5 < this.dirtyBlockCount; var5++)
                     {
-                        if (dirtyBlocks[var5] == var4)
+                        if (this.dirtyBlocks[var5] == var4)
                         {
                             return;
                         }
                     }
 
-                    dirtyBlocks[dirtyBlockCount++] = var4;
+                    this.dirtyBlocks[this.dirtyBlockCount++] = var4;
                 }
             }
 
             public void sendPacketToPlayers(Packet packet)
             {
-                for (int var2 = 0; var2 < players.Count; var2++)
+                for (int var2 = 0; var2 < this.players.size(); var2++)
                 {
-                    ServerPlayerEntity var3 = players[var2];
-                    if (var3.activeChunks.contains(chunkPos))
+                    ServerPlayerEntity var3 = (ServerPlayerEntity)this.players.get(var2);
+                    if (var3.activeChunks.contains(this.chunkPos))
                     {
                         var3.networkHandler.sendPacket(packet);
                     }
@@ -328,55 +328,55 @@ namespace betareborn.Server
             public void updateChunk()
             {
                 ServerWorld var1 = chunkMap.getWorld();
-                if (dirtyBlockCount != 0)
+                if (this.dirtyBlockCount != 0)
                 {
-                    if (dirtyBlockCount == 1)
+                    if (this.dirtyBlockCount == 1)
                     {
-                        int var2 = chunkX * 16 + minX;
-                        int var3 = minZ;
-                        int var4 = chunkZ * 16 + maxY;
-                        sendPacketToPlayers(new BlockUpdateS2CPacket(var2, var3, var4, var1));
+                        int var2 = this.chunkX * 16 + this.minX;
+                        int var3 = this.minZ;
+                        int var4 = this.chunkZ * 16 + this.maxY;
+                        this.sendPacketToPlayers(new BlockUpdateS2CPacket(var2, var3, var4, var1));
                         if (Block.BLOCKS_WITH_ENTITY[var1.getBlockId(var2, var3, var4)])
                         {
-                            sendBlockEntityUpdate(var1.getBlockEntity(var2, var3, var4));
+                            this.sendBlockEntityUpdate(var1.getBlockEntity(var2, var3, var4));
                         }
                     }
-                    else if (dirtyBlockCount == 10)
+                    else if (this.dirtyBlockCount == 10)
                     {
-                        minZ = minZ / 2 * 2;
-                        maxX = (maxX / 2 + 1) * 2;
-                        int var10 = minX + chunkX * 16;
-                        int var12 = minZ;
-                        int var14 = maxY + chunkZ * 16;
-                        int var5 = minY - minX + 1;
-                        int var6 = maxX - minZ + 2;
-                        int var7 = maxZ - maxY + 1;
-                        sendPacketToPlayers(new ChunkDataS2CPacket(var10, var12, var14, var5, var6, var7, var1));
-                        var var8 = var1.getBlockEntities(var10, var12, var14, var10 + var5, var12 + var6, var14 + var7);
+                        this.minZ = this.minZ / 2 * 2;
+                        this.maxX = (this.maxX / 2 + 1) * 2;
+                        int var10 = this.minX + this.chunkX * 16;
+                        int var12 = this.minZ;
+                        int var14 = this.maxY + this.chunkZ * 16;
+                        int var5 = this.minY - this.minX + 1;
+                        int var6 = this.maxX - this.minZ + 2;
+                        int var7 = this.maxZ - this.maxY + 1;
+                        this.sendPacketToPlayers(new ChunkDataS2CPacket(var10, var12, var14, var5, var6, var7, var1));
+                        List var8 = var1.getBlockEntities(var10, var12, var14, var10 + var5, var12 + var6, var14 + var7);
 
-                        for (int var9 = 0; var9 < var8.Count; var9++)
+                        for (int var9 = 0; var9 < var8.size(); var9++)
                         {
-                            sendBlockEntityUpdate(var8[var9]);
+                            this.sendBlockEntityUpdate((BlockEntity)var8.get(var9));
                         }
                     }
                     else
                     {
-                        sendPacketToPlayers(new ChunkDeltaUpdateS2CPacket(chunkX, chunkZ, dirtyBlocks, dirtyBlockCount, var1));
+                        this.sendPacketToPlayers(new ChunkDeltaUpdateS2CPacket(this.chunkX, this.chunkZ, this.dirtyBlocks, this.dirtyBlockCount, var1));
 
-                        for (int var11 = 0; var11 < dirtyBlockCount; var11++)
+                        for (int var11 = 0; var11 < this.dirtyBlockCount; var11++)
                         {
-                            int var13 = chunkX * 16 + (dirtyBlockCount >> 12 & 15);
-                            int var15 = dirtyBlockCount & 0xFF;
-                            int var16 = chunkZ * 16 + (dirtyBlockCount >> 8 & 15);
+                            int var13 = this.chunkX * 16 + (this.dirtyBlockCount >> 12 & 15);
+                            int var15 = this.dirtyBlockCount & 0xFF;
+                            int var16 = this.chunkZ * 16 + (this.dirtyBlockCount >> 8 & 15);
                             if (Block.BLOCKS_WITH_ENTITY[var1.getBlockId(var13, var15, var16)])
                             {
                                 java.lang.System.@out.println("Sending!");
-                                sendBlockEntityUpdate(var1.getBlockEntity(var13, var15, var16));
+                                this.sendBlockEntityUpdate(var1.getBlockEntity(var13, var15, var16));
                             }
                         }
                     }
 
-                    dirtyBlockCount = 0;
+                    this.dirtyBlockCount = 0;
                 }
             }
 
@@ -387,7 +387,7 @@ namespace betareborn.Server
                     Packet var2 = blockentity.createUpdatePacket();
                     if (var2 != null)
                     {
-                        sendPacketToPlayers(var2);
+                        this.sendPacketToPlayers(var2);
                     }
                 }
             }

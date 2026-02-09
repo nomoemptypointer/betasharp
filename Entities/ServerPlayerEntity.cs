@@ -26,7 +26,7 @@ namespace betareborn.Entities
         public Set activeChunks = new HashSet();
         private int lastHealthScore = -99999999;
         private int joinInvulnerabilityTicks = 60;
-        private ItemStack[] equipment = [null, null, null, null, null];
+        private ItemStack[] equipment = new ItemStack[] { null, null, null, null, null };
         private int screenHandlerSyncId = 0;
         public bool skipPacketSlotUpdates;
 
@@ -40,24 +40,24 @@ namespace betareborn.Entities
             int var8 = var5.y;
             if (!world.dimension.hasCeiling)
             {
-                var6 += random.nextInt(20) - 10;
+                var6 += this.random.nextInt(20) - 10;
                 var8 = world.getSpawnPositionValidityY(var6, var7);
-                var7 += random.nextInt(20) - 10;
+                var7 += this.random.nextInt(20) - 10;
             }
 
-            setPositionAndAnglesKeepPrevAngles(var6 + 0.5, var8, var7 + 0.5, 0.0F, 0.0F);
+            this.setPositionAndAnglesKeepPrevAngles(var6 + 0.5, var8, var7 + 0.5, 0.0F, 0.0F);
             this.server = server;
-            stepHeight = 0.0F;
+            this.stepHeight = 0.0F;
             this.name = name;
-            standingEyeHeight = 0.0F;
+            this.standingEyeHeight = 0.0F;
         }
 
 
         public override void setWorld(World world)
         {
             base.setWorld(world);
-            interactionManager = new ServerPlayerInteractionManager((ServerWorld)world);
-            interactionManager.player = this;
+            this.interactionManager = new ServerPlayerInteractionManager((ServerWorld)world);
+            this.interactionManager.player = this;
         }
 
         public void initScreenHandler()
@@ -68,13 +68,13 @@ namespace betareborn.Entities
 
         public override ItemStack[] getEquipment()
         {
-            return equipment;
+            return this.equipment;
         }
 
 
         protected override void resetEyeHeight()
         {
-            standingEyeHeight = 0.0F;
+            this.standingEyeHeight = 0.0F;
         }
 
 
@@ -86,42 +86,42 @@ namespace betareborn.Entities
 
         public override void tick()
         {
-            interactionManager.update();
-            joinInvulnerabilityTicks--;
-            currentScreenHandler.sendContentUpdates();
+            this.interactionManager.update();
+            this.joinInvulnerabilityTicks--;
+            this.currentScreenHandler.sendContentUpdates();
 
             for (int var1 = 0; var1 < 5; var1++)
             {
-                ItemStack var2 = getEquipment(var1);
-                if (var2 != equipment[var1])
+                ItemStack var2 = this.getEquipment(var1);
+                if (var2 != this.equipment[var1])
                 {
-                    server.getEntityTracker(dimensionId).sendToListeners(this, new EntityEquipmentUpdateS2CPacket(id, var1, var2));
-                    equipment[var1] = var2;
+                    this.server.getEntityTracker(this.dimensionId).sendToListeners(this, new EntityEquipmentUpdateS2CPacket(this.id, var1, var2));
+                    this.equipment[var1] = var2;
                 }
             }
         }
 
         public ItemStack getEquipment(int slot)
         {
-            return slot == 0 ? inventory.getSelectedItem() : inventory.armor[slot - 1];
+            return slot == 0 ? this.inventory.getSelectedItem() : this.inventory.armor[slot - 1];
         }
 
 
         public override void onKilledBy(Entity adversary)
         {
-            inventory.dropInventory();
+            this.inventory.dropInventory();
         }
 
 
         public override bool damage(Entity damageSource, int amount)
         {
-            if (joinInvulnerabilityTicks > 0)
+            if (this.joinInvulnerabilityTicks > 0)
             {
                 return false;
             }
             else
             {
-                if (!server.pvpEnabled)
+                if (!this.server.pvpEnabled)
                 {
                     if (damageSource is EntityPlayer)
                     {
@@ -144,7 +144,7 @@ namespace betareborn.Entities
 
         protected override bool isPvpEnabled()
         {
-            return server.pvpEnabled;
+            return this.server.pvpEnabled;
         }
 
 
@@ -157,94 +157,94 @@ namespace betareborn.Entities
         {
             base.tick();
 
-            for (int var2 = 0; var2 < inventory.size(); var2++)
+            for (int var2 = 0; var2 < this.inventory.size(); var2++)
             {
-                ItemStack var3 = inventory.getStack(var2);
-                if (var3 != null && Item.ITEMS[var3.itemId].isNetworkSynced() && networkHandler.getBlockDataSendQueueSize() <= 2)
+                ItemStack var3 = this.inventory.getStack(var2);
+                if (var3 != null && Item.ITEMS[var3.itemId].isNetworkSynced() && this.networkHandler.getBlockDataSendQueueSize() <= 2)
                 {
-                    Packet var4 = ((NetworkSyncedItem)Item.ITEMS[var3.itemId]).getUpdatePacket(var3, world, this);
+                    Packet var4 = ((NetworkSyncedItem)Item.ITEMS[var3.itemId]).getUpdatePacket(var3, this.world, this);
                     if (var4 != null)
                     {
-                        networkHandler.sendPacket(var4);
+                        this.networkHandler.sendPacket(var4);
                     }
                 }
             }
 
-            if (shouldSendChunkUpdates && !pendingChunkUpdates.isEmpty())
+            if (shouldSendChunkUpdates && !this.pendingChunkUpdates.isEmpty())
             {
-                ChunkPos? var7 = (ChunkPos?)pendingChunkUpdates.get(0);
+                ChunkPos? var7 = (ChunkPos?)this.pendingChunkUpdates.get(0);
                 if (var7 != null)
                 {
                     bool var8 = false;
-                    if (networkHandler.getBlockDataSendQueueSize() < 4)
+                    if (this.networkHandler.getBlockDataSendQueueSize() < 4)
                     {
                         var8 = true;
                     }
 
                     if (var8)
                     {
-                        ServerWorld var9 = server.getWorld(dimensionId);
-                        pendingChunkUpdates.remove(var7);
-                        networkHandler.sendPacket(new ChunkDataS2CPacket(var7.Value.x * 16, 0, var7.Value.z * 16, 16, 128, 16, var9));
-                        var var5 = var9.getBlockEntities(var7.Value.x * 16, 0, var7.Value.z * 16, var7.Value.x * 16 + 16, 128, var7.Value.z * 16 + 16);
+                        ServerWorld var9 = this.server.getWorld(this.dimensionId);
+                        this.pendingChunkUpdates.remove(var7);
+                        this.networkHandler.sendPacket(new ChunkDataS2CPacket(var7.Value.x * 16, 0, var7.Value.z * 16, 16, 128, 16, var9));
+                        List var5 = var9.getBlockEntities(var7.Value.x * 16, 0, var7.Value.z * 16, var7.Value.x * 16 + 16, 128, var7.Value.z * 16 + 16);
 
-                        for (int var6 = 0; var6 < var5.Count; var6++)
+                        for (int var6 = 0; var6 < var5.size(); var6++)
                         {
-                            updateBlockEntity(var5[var6]);
+                            this.updateBlockEntity((BlockEntity)var5.get(var6));
                         }
                     }
                 }
             }
 
-            if (inTeleportationState)
+            if (this.inTeleportationState)
             {
-                if (server.properties.getProperty("allow-nether", true))
+                if (this.server.properties.getProperty("allow-nether", true))
                 {
-                    if (currentScreenHandler != playerScreenHandler)
+                    if (this.currentScreenHandler != this.playerScreenHandler)
                     {
-                        closeHandledScreen();
+                        this.closeHandledScreen();
                     }
 
-                    if (vehicle != null)
+                    if (this.vehicle != null)
                     {
-                        setVehicle(vehicle);
+                        this.setVehicle(this.vehicle);
                     }
                     else
                     {
-                        changeDimensionCooldown += 0.0125F;
-                        if (changeDimensionCooldown >= 1.0F)
+                        this.changeDimensionCooldown += 0.0125F;
+                        if (this.changeDimensionCooldown >= 1.0F)
                         {
-                            changeDimensionCooldown = 1.0F;
-                            portalCooldown = 10;
-                            server.playerManager.changePlayerDimension(this);
+                            this.changeDimensionCooldown = 1.0F;
+                            this.portalCooldown = 10;
+                            this.server.playerManager.changePlayerDimension(this);
                         }
                     }
 
-                    inTeleportationState = false;
+                    this.inTeleportationState = false;
                 }
             }
             else
             {
-                if (changeDimensionCooldown > 0.0F)
+                if (this.changeDimensionCooldown > 0.0F)
                 {
-                    changeDimensionCooldown -= 0.05F;
+                    this.changeDimensionCooldown -= 0.05F;
                 }
 
-                if (changeDimensionCooldown < 0.0F)
+                if (this.changeDimensionCooldown < 0.0F)
                 {
-                    changeDimensionCooldown = 0.0F;
+                    this.changeDimensionCooldown = 0.0F;
                 }
             }
 
-            if (portalCooldown > 0)
+            if (this.portalCooldown > 0)
             {
-                portalCooldown--;
+                this.portalCooldown--;
             }
 
-            if (health != lastHealthScore)
+            if (this.health != this.lastHealthScore)
             {
-                networkHandler.sendPacket(new HealthUpdateS2CPacket(health));
-                lastHealthScore = health;
+                this.networkHandler.sendPacket(new HealthUpdateS2CPacket(this.health));
+                this.lastHealthScore = this.health;
             }
         }
 
@@ -255,7 +255,7 @@ namespace betareborn.Entities
                 Packet var2 = blockentity.createUpdatePacket();
                 if (var2 != null)
                 {
-                    networkHandler.sendPacket(var2);
+                    this.networkHandler.sendPacket(var2);
                 }
             }
         }
@@ -271,30 +271,30 @@ namespace betareborn.Entities
         {
             if (!item.dead)
             {
-                EntityTracker var3 = server.getEntityTracker(dimensionId);
+                EntityTracker var3 = this.server.getEntityTracker(this.dimensionId);
                 if (item is EntityItem)
                 {
-                    var3.sendToListeners(item, new ItemPickupAnimationS2CPacket(item.id, id));
+                    var3.sendToListeners(item, new ItemPickupAnimationS2CPacket(item.id, this.id));
                 }
 
                 if (item is EntityArrow)
                 {
-                    var3.sendToListeners(item, new ItemPickupAnimationS2CPacket(item.id, id));
+                    var3.sendToListeners(item, new ItemPickupAnimationS2CPacket(item.id, this.id));
                 }
             }
 
             base.sendPickup(item, count);
-            currentScreenHandler.sendContentUpdates();
+            this.currentScreenHandler.sendContentUpdates();
         }
 
 
         public override void swingHand()
         {
-            if (!handSwinging)
+            if (!this.handSwinging)
             {
-                handSwingTicks = -1;
-                handSwinging = true;
-                EntityTracker var1 = server.getEntityTracker(dimensionId);
+                this.handSwingTicks = -1;
+                this.handSwinging = true;
+                EntityTracker var1 = this.server.getEntityTracker(this.dimensionId);
                 var1.sendToListeners(this, new EntityAnimationPacket(this, 1));
             }
         }
@@ -309,11 +309,11 @@ namespace betareborn.Entities
             SleepAttemptResult var4 = base.trySleep(x, y, z);
             if (var4 == SleepAttemptResult.OK)
             {
-                EntityTracker var5 = server.getEntityTracker(dimensionId);
+                EntityTracker var5 = this.server.getEntityTracker(this.dimensionId);
                 PlayerSleepUpdateS2CPacket var6 = new PlayerSleepUpdateS2CPacket(this, 0, x, y, z);
                 var5.sendToListeners(this, var6);
-                networkHandler.teleport(x, y, z, yaw, pitch);
-                networkHandler.sendPacket(var6);
+                this.networkHandler.teleport(this.x, this.y, this.z, this.yaw, this.pitch);
+                this.networkHandler.sendPacket(var6);
             }
 
             return var4;
@@ -322,16 +322,16 @@ namespace betareborn.Entities
 
         public override void wakeUp(bool resetSleepTimer, bool updateSleepingPlayers, bool setSpawnPos)
         {
-            if (isSleeping())
+            if (this.isSleeping())
             {
-                EntityTracker var4 = server.getEntityTracker(dimensionId);
+                EntityTracker var4 = this.server.getEntityTracker(this.dimensionId);
                 var4.sendToAround(this, new EntityAnimationPacket(this, 3));
             }
 
             base.wakeUp(resetSleepTimer, updateSleepingPlayers, setSpawnPos);
-            if (networkHandler != null)
+            if (this.networkHandler != null)
             {
-                networkHandler.teleport(x, y, z, yaw, pitch);
+                this.networkHandler.teleport(this.x, this.y, this.z, this.yaw, this.pitch);
             }
         }
 
@@ -339,8 +339,8 @@ namespace betareborn.Entities
         public override void setVehicle(Entity entity)
         {
             base.setVehicle(entity);
-            networkHandler.sendPacket(new EntityVehicleSetS2CPacket(this, vehicle));
-            networkHandler.teleport(x, y, z, yaw, pitch);
+            this.networkHandler.sendPacket(new EntityVehicleSetS2CPacket(this, this.vehicle));
+            this.networkHandler.teleport(this.x, this.y, this.z, this.yaw, this.pitch);
         }
 
 
@@ -355,47 +355,47 @@ namespace betareborn.Entities
 
         private void incrementScreenHandlerSyncId()
         {
-            screenHandlerSyncId = screenHandlerSyncId % 100 + 1;
+            this.screenHandlerSyncId = this.screenHandlerSyncId % 100 + 1;
         }
 
 
         public override void openCraftingScreen(int x, int y, int z)
         {
-            incrementScreenHandlerSyncId();
-            networkHandler.sendPacket(new OpenScreenS2CPacket(screenHandlerSyncId, 1, "Crafting", 9));
-            currentScreenHandler = new CraftingScreenHandler(inventory, world, x, y, z);
-            currentScreenHandler.syncId = screenHandlerSyncId;
-            currentScreenHandler.addListener(this);
+            this.incrementScreenHandlerSyncId();
+            this.networkHandler.sendPacket(new OpenScreenS2CPacket(this.screenHandlerSyncId, 1, "Crafting", 9));
+            this.currentScreenHandler = new CraftingScreenHandler(this.inventory, this.world, x, y, z);
+            this.currentScreenHandler.syncId = this.screenHandlerSyncId;
+            this.currentScreenHandler.addListener(this);
         }
 
 
         public override void openChestScreen(IInventory inventory)
         {
-            incrementScreenHandlerSyncId();
-            networkHandler.sendPacket(new OpenScreenS2CPacket(screenHandlerSyncId, 0, inventory.getName(), inventory.size()));
-            currentScreenHandler = new GenericContainerScreenHandler(inventory, inventory);
-            currentScreenHandler.syncId = screenHandlerSyncId;
-            currentScreenHandler.addListener(this);
+            this.incrementScreenHandlerSyncId();
+            this.networkHandler.sendPacket(new OpenScreenS2CPacket(this.screenHandlerSyncId, 0, inventory.getName(), inventory.size()));
+            this.currentScreenHandler = new GenericContainerScreenHandler(this.inventory, inventory);
+            this.currentScreenHandler.syncId = this.screenHandlerSyncId;
+            this.currentScreenHandler.addListener(this);
         }
 
 
         public override void openFurnaceScreen(BlockEntityFurnace furnace)
         {
-            incrementScreenHandlerSyncId();
-            networkHandler.sendPacket(new OpenScreenS2CPacket(screenHandlerSyncId, 2, furnace.getName(), furnace.size()));
-            currentScreenHandler = new FurnaceScreenHandler(inventory, furnace);
-            currentScreenHandler.syncId = screenHandlerSyncId;
-            currentScreenHandler.addListener(this);
+            this.incrementScreenHandlerSyncId();
+            this.networkHandler.sendPacket(new OpenScreenS2CPacket(this.screenHandlerSyncId, 2, furnace.getName(), furnace.size()));
+            this.currentScreenHandler = new FurnaceScreenHandler(this.inventory, furnace);
+            this.currentScreenHandler.syncId = this.screenHandlerSyncId;
+            this.currentScreenHandler.addListener(this);
         }
 
 
         public override void openDispenserScreen(BlockEntityDispenser dispenser)
         {
-            incrementScreenHandlerSyncId();
-            networkHandler.sendPacket(new OpenScreenS2CPacket(screenHandlerSyncId, 3, dispenser.getName(), dispenser.size()));
-            currentScreenHandler = new DispenserScreenHandler(inventory, dispenser);
-            currentScreenHandler.syncId = screenHandlerSyncId;
-            currentScreenHandler.addListener(this);
+            this.incrementScreenHandlerSyncId();
+            this.networkHandler.sendPacket(new OpenScreenS2CPacket(this.screenHandlerSyncId, 3, dispenser.getName(), dispenser.size()));
+            this.currentScreenHandler = new DispenserScreenHandler(this.inventory, dispenser);
+            this.currentScreenHandler.syncId = this.screenHandlerSyncId;
+            this.currentScreenHandler.addListener(this);
         }
 
 
@@ -403,29 +403,29 @@ namespace betareborn.Entities
         {
             if (!(handler.getSlot(slot) is CraftingResultSlot))
             {
-                if (!skipPacketSlotUpdates)
+                if (!this.skipPacketSlotUpdates)
                 {
-                    networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, slot, stack));
+                    this.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(handler.syncId, slot, stack));
                 }
             }
         }
 
         public void onContentsUpdate(ScreenHandler screenHandler)
         {
-            onContentsUpdate(screenHandler, screenHandler.getStacks());
+            this.onContentsUpdate(screenHandler, screenHandler.getStacks());
         }
 
 
         public void onContentsUpdate(ScreenHandler handler, List stacks)
         {
-            networkHandler.sendPacket(new InventoryS2CPacket(handler.syncId, stacks));
-            networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, -1, inventory.getCursorStack()));
+            this.networkHandler.sendPacket(new InventoryS2CPacket(handler.syncId, stacks));
+            this.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-1, -1, this.inventory.getCursorStack()));
         }
 
 
         public void onPropertyUpdate(ScreenHandler handler, int syncId, int trackedValue)
         {
-            networkHandler.sendPacket(new ScreenHandlerPropertyUpdateS2CPacket(handler.syncId, syncId, trackedValue));
+            this.networkHandler.sendPacket(new ScreenHandlerPropertyUpdateS2CPacket(handler.syncId, syncId, trackedValue));
         }
 
 
@@ -473,36 +473,36 @@ namespace betareborn.Entities
                 {
                     while (amount > 100)
                     {
-                        networkHandler.sendPacket(new IncreaseStatS2CPacket(stat.id, 100));
+                        this.networkHandler.sendPacket(new IncreaseStatS2CPacket(stat.id, 100));
                         amount -= 100;
                     }
 
-                    networkHandler.sendPacket(new IncreaseStatS2CPacket(stat.id, amount));
+                    this.networkHandler.sendPacket(new IncreaseStatS2CPacket(stat.id, amount));
                 }
             }
         }
 
         public void onDisconnect()
         {
-            if (vehicle != null)
+            if (this.vehicle != null)
             {
-                setVehicle(vehicle);
+                this.setVehicle(this.vehicle);
             }
 
-            if (passenger != null)
+            if (this.passenger != null)
             {
-                passenger.setVehicle(this);
+                this.passenger.setVehicle(this);
             }
 
-            if (sleeping)
+            if (this.sleeping)
             {
-                wakeUp(true, false, false);
+                this.wakeUp(true, false, false);
             }
         }
 
         public void markHealthDirty()
         {
-            lastHealthScore = -99999999;
+            this.lastHealthScore = -99999999;
         }
 
 
@@ -510,7 +510,7 @@ namespace betareborn.Entities
         {
             TranslationStorage var2 = TranslationStorage.getInstance();
             string var3 = var2.translateKey(message);
-            networkHandler.sendPacket(new ChatMessagePacket(var3));
+            this.networkHandler.sendPacket(new ChatMessagePacket(var3));
         }
     }
 }

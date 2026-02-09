@@ -8,14 +8,7 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public EntityRotateS2CPacket()
         {
-            rotate = true;
-        }
-
-        public EntityRotateS2CPacket(int entityId, byte yaw, byte pitch) : base(entityId)
-        {
-            this.yaw = (sbyte)yaw;
-            this.pitch = (sbyte)pitch;
-            this.rotate = true;
+            rotating = true;
         }
 
         public override void read(DataInputStream var1)

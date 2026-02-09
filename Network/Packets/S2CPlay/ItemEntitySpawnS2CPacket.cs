@@ -1,4 +1,5 @@
 using betareborn.Entities;
+using betareborn.Network.Packets;
 using betareborn.Util.Maths;
 using java.io;
 
@@ -8,15 +9,15 @@ namespace betareborn.Network.Packets.S2CPlay
     {
         public static readonly new java.lang.Class Class = ikvm.runtime.Util.getClassFromTypeHandle(typeof(ItemEntitySpawnS2CPacket).TypeHandle);
 
-        public int id;
-        public int x;
-        public int y;
-        public int z;
-        public sbyte velocityX;
-        public sbyte velocityY;
-        public sbyte velocityZ;
-        public int itemRawId;
-        public int itemCount;
+        public int entityId;
+        public int xPosition;
+        public int yPosition;
+        public int zPosition;
+        public sbyte rotation;
+        public sbyte pitch;
+        public sbyte roll;
+        public int itemID;
+        public int count;
         public int itemDamage;
 
         public ItemEntitySpawnS2CPacket()
@@ -25,44 +26,44 @@ namespace betareborn.Network.Packets.S2CPlay
 
         public ItemEntitySpawnS2CPacket(EntityItem var1)
         {
-            id = var1.id;
-            itemRawId = var1.item.itemId;
-            itemCount = var1.item.count;
+            entityId = var1.id;
+            itemID = var1.item.itemId;
+            count = var1.item.count;
             itemDamage = var1.item.getDamage();
-            x = MathHelper.floor_double(var1.x * 32.0D);
-            y = MathHelper.floor_double(var1.y * 32.0D);
-            z = MathHelper.floor_double(var1.z * 32.0D);
-            velocityX = (sbyte)(int)(var1.velocityX * 128.0D);
-            velocityY = (sbyte)(int)(var1.velocityY * 128.0D);
-            velocityZ = (sbyte)(int)(var1.velocityZ * 128.0D);
+            xPosition = MathHelper.floor_double(var1.x * 32.0D);
+            yPosition = MathHelper.floor_double(var1.y * 32.0D);
+            zPosition = MathHelper.floor_double(var1.z * 32.0D);
+            rotation = (sbyte)(int)(var1.velocityX * 128.0D);
+            pitch = (sbyte)(int)(var1.velocityY * 128.0D);
+            roll = (sbyte)(int)(var1.velocityZ * 128.0D);
         }
 
         public override void read(DataInputStream var1)
         {
-            id = var1.readInt();
-            itemRawId = var1.readShort();
-            itemCount = (sbyte)var1.readByte();
+            entityId = var1.readInt();
+            itemID = var1.readShort();
+            count = (sbyte)var1.readByte();
             itemDamage = var1.readShort();
-            x = var1.readInt();
-            y = var1.readInt();
-            z = var1.readInt();
-            velocityX = (sbyte)var1.readByte();
-            velocityY = (sbyte)var1.readByte();
-            velocityZ = (sbyte)var1.readByte();
+            xPosition = var1.readInt();
+            yPosition = var1.readInt();
+            zPosition = var1.readInt();
+            rotation = (sbyte)var1.readByte();
+            pitch = (sbyte)var1.readByte();
+            roll = (sbyte)var1.readByte();
         }
 
         public override void write(DataOutputStream var1)
         {
-            var1.writeInt(id);
-            var1.writeShort(itemRawId);
-            var1.writeByte(itemCount);
+            var1.writeInt(entityId);
+            var1.writeShort(itemID);
+            var1.writeByte(count);
             var1.writeShort(itemDamage);
-            var1.writeInt(x);
-            var1.writeInt(y);
-            var1.writeInt(z);
-            var1.writeByte(velocityX);
-            var1.writeByte(velocityY);
-            var1.writeByte(velocityZ);
+            var1.writeInt(xPosition);
+            var1.writeInt(yPosition);
+            var1.writeInt(zPosition);
+            var1.writeByte(rotation);
+            var1.writeByte(pitch);
+            var1.writeByte(roll);
         }
 
         public override void apply(NetHandler var1)
