@@ -96,7 +96,8 @@ namespace betareborn.Worlds
 
         public BlockEntity getBlockEntity(int var1, int var2, int var3)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return null;
         }
 
         public float getNaturalBrightness(int var1, int var2, int var3, int var4)
