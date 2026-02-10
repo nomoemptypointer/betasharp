@@ -1,5 +1,6 @@
 using betareborn.Blocks;
 using java.util;
+using System.Text.Json;
 
 namespace betareborn
 {
@@ -7,6 +8,7 @@ namespace betareborn
     {
         public static List registeredBlocksList = new ArrayList();
         public string username;
+        public string uuid;
         public string sessionId;
         public string mpPassParameter;
 
@@ -14,6 +16,27 @@ namespace betareborn
         {
             username = var1;
             sessionId = var2;
+            FetchUUIDAsync().GetAwaiter().GetResult();
+        }
+
+        public async Task FetchUUIDAsync()
+        {
+            using (HttpClient client = new())
+            {
+                try
+                {
+                    string url = $"https://api.mojang.com/users/profiles/minecraft/{username}";
+                    var response = await client.GetStringAsync(url);
+
+                    var json = JsonDocument.Parse(response).RootElement;
+                    uuid = json.GetProperty("id").GetString();
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Unable to fetch UUID (player may not exist).");
+                    uuid = null;
+                }
+            }
         }
 
         static Session()

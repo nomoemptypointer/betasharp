@@ -18,16 +18,18 @@ namespace betareborn.Entities
         private MouseFilter field_21904_bK = new MouseFilter();
         private MouseFilter field_21902_bL = new MouseFilter();
 
-        public ClientPlayerEntity(Minecraft var1, World var2, Session var3, int var4) : base(var2)
+        public ClientPlayerEntity(Minecraft var1, World var2, Session session, int var4) : base(var2)
         {
             mc = var1;
             dimension = var4;
-            if (var3 != null && var3.username != null && var3.username.Length > 0)
+            if (session != null && session.username != null && session.username.Length > 0)
             {
-                skinUrl = "http://s3.amazonaws.com/MinecraftSkins/" + var3.username + ".png";
+                //skinUrl = "https://sessionserver.mojang.com/session/minecraft/profile/" + session.uuid;
+                skinUrl = "https://mineskin.eu/skin/" + session.username;
             }
 
-            username = var3.username;
+            username = session.username;
+            uuid = session.uuid;
         }
 
         public override void moveEntity(double var1, double var3, double var5)

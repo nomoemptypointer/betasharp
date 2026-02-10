@@ -26,6 +26,7 @@ namespace betareborn.Entities
         public bool isSwinging = false;
         public int swingProgressInt = 0;
         public string username;
+        public string uuid;
         public int dimension;
         public string playerCloakUrl;
         public double field_20066_r;

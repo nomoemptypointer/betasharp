@@ -24,17 +24,17 @@ namespace betareborn.Client.Rendering.Entitys
             renderPassModel = var1;
         }
 
-        public virtual void doRenderLiving(EntityLiving var1, double var2, double var4, double var6, float var8, float var9)
+        public virtual void doRenderLiving(EntityLiving entity, double var2, double var4, double var6, float var8, float var9)
         {
             GLManager.GL.PushMatrix();
             GLManager.GL.Disable(GLEnum.CullFace);
-            mainModel.onGround = func_167_c(var1, var9);
+            mainModel.onGround = func_167_c(entity, var9);
             if (renderPassModel != null)
             {
                 renderPassModel.onGround = mainModel.onGround;
             }
 
-            mainModel.isRiding = var1.isRiding();
+            mainModel.isRiding = entity.isRiding();
             if (renderPassModel != null)
             {
                 renderPassModel.isRiding = mainModel.isRiding;
@@ -42,32 +42,32 @@ namespace betareborn.Client.Rendering.Entitys
 
             try
             {
-                float var10 = var1.prevRenderYawOffset + (var1.renderYawOffset - var1.prevRenderYawOffset) * var9;
-                float var11 = var1.prevYaw + (var1.yaw - var1.prevYaw) * var9;
-                float var12 = var1.prevPitch + (var1.pitch - var1.prevPitch) * var9;
-                func_22012_b(var1, var2, var4, var6);
-                float var13 = func_170_d(var1, var9);
-                rotateCorpse(var1, var13, var10, var9);
+                float var10 = entity.prevRenderYawOffset + (entity.renderYawOffset - entity.prevRenderYawOffset) * var9;
+                float var11 = entity.prevYaw + (entity.yaw - entity.prevYaw) * var9;
+                float var12 = entity.prevPitch + (entity.pitch - entity.prevPitch) * var9;
+                func_22012_b(entity, var2, var4, var6);
+                float var13 = func_170_d(entity, var9);
+                rotateCorpse(entity, var13, var10, var9);
                 float var14 = 1.0F / 16.0F;
                 GLManager.GL.Enable(GLEnum.RescaleNormal);
                 GLManager.GL.Scale(-1.0F, -1.0F, 1.0F);
-                preRenderCallback(var1, var9);
+                preRenderCallback(entity, var9);
                 GLManager.GL.Translate(0.0F, -24.0F * var14 - 0.0078125F, 0.0F);
-                float var15 = var1.lastWalkAnimationSpeed + (var1.walkAnimationSpeed - var1.lastWalkAnimationSpeed) * var9;
-                float var16 = var1.field_703_S - var1.walkAnimationSpeed * (1.0F - var9);
+                float var15 = entity.lastWalkAnimationSpeed + (entity.walkAnimationSpeed - entity.lastWalkAnimationSpeed) * var9;
+                float var16 = entity.field_703_S - entity.walkAnimationSpeed * (1.0F - var9);
                 if (var15 > 1.0F)
                 {
                     var15 = 1.0F;
                 }
 
-                loadDownloadableImageTexture(var1.skinUrl, var1.getEntityTexture());
+                loadDownloadableImageTexture(entity.skinUrl, entity.getEntityTexture());
                 GLManager.GL.Enable(GLEnum.AlphaTest);
-                mainModel.setLivingAnimations(var1, var16, var15, var9);
+                mainModel.setLivingAnimations(entity, var16, var15, var9);
                 mainModel.render(var16, var15, var13, var11 - var10, var12, var14);
 
                 for (int var17 = 0; var17 < 4; ++var17)
                 {
-                    if (shouldRenderPass(var1, var17, var9))
+                    if (shouldRenderPass(entity, var17, var9))
                     {
                         renderPassModel.render(var16, var15, var13, var11 - var10, var12, var14);
                         GLManager.GL.Disable(GLEnum.Blend);
@@ -75,24 +75,24 @@ namespace betareborn.Client.Rendering.Entitys
                     }
                 }
 
-                renderMore(var1, var9);
-                float var25 = var1.getEntityBrightness(var9);
-                int var18 = getColorMultiplier(var1, var25, var9);
-                if ((var18 >> 24 & 255) > 0 || var1.hurtTime > 0 || var1.deathTime > 0)
+                renderMore(entity, var9);
+                float var25 = entity.getEntityBrightness(var9);
+                int var18 = getColorMultiplier(entity, var25, var9);
+                if ((var18 >> 24 & 255) > 0 || entity.hurtTime > 0 || entity.deathTime > 0)
                 {
                     GLManager.GL.Disable(GLEnum.Texture2D);
                     GLManager.GL.Disable(GLEnum.AlphaTest);
                     GLManager.GL.Enable(GLEnum.Blend);
                     GLManager.GL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
                     GLManager.GL.DepthFunc(GLEnum.Equal);
-                    if (var1.hurtTime > 0 || var1.deathTime > 0)
+                    if (entity.hurtTime > 0 || entity.deathTime > 0)
                     {
                         GLManager.GL.Color4(var25, 0.0F, 0.0F, 0.4F);
                         mainModel.render(var16, var15, var13, var11 - var10, var12, var14);
 
                         for (int var19 = 0; var19 < 4; ++var19)
                         {
-                            if (func_27005_b(var1, var19, var9))
+                            if (func_27005_b(entity, var19, var9))
                             {
                                 GLManager.GL.Color4(var25, 0.0F, 0.0F, 0.4F);
                                 renderPassModel.render(var16, var15, var13, var11 - var10, var12, var14);
@@ -111,7 +111,7 @@ namespace betareborn.Client.Rendering.Entitys
 
                         for (int var23 = 0; var23 < 4; ++var23)
                         {
-                            if (func_27005_b(var1, var23, var9))
+                            if (func_27005_b(entity, var23, var9))
                             {
                                 GLManager.GL.Color4(var26, var20, var21, var22);
                                 renderPassModel.render(var16, var15, var13, var11 - var10, var12, var14);
@@ -134,7 +134,7 @@ namespace betareborn.Client.Rendering.Entitys
 
             GLManager.GL.Enable(GLEnum.CullFace);
             GLManager.GL.PopMatrix();
-            passSpecialRender(var1, var2, var4, var6);
+            passSpecialRender(entity, var2, var4, var6);
         }
 
         protected virtual void func_22012_b(EntityLiving var1, double var2, double var4, double var6)

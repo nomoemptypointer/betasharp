@@ -16,14 +16,14 @@ namespace betareborn.Client.Network
         private double lerpYaw;
         private double lerpPitch;
 
-        public OtherPlayerEntity(World var1, string var2) : base(var1)
+        public OtherPlayerEntity(World var1, string username) : base(var1)
         {
-            username = var2;
+            base.username = username;
             standingEyeHeight = 0.0F;
             stepHeight = 0.0F;
-            if (var2 != null && var2.Length > 0)
+            if (username != null && username.Length > 0)
             {
-                skinUrl = "http://s3.amazonaws.com/MinecraftSkins/" + var2 + ".png";
+                skinUrl = "https://mineskin.eu/skin/" + username;
             }
 
             noClip = true;
