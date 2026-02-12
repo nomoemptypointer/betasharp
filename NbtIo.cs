@@ -6,53 +6,55 @@ namespace betareborn
 {
     public class NbtIo : java.lang.Object
     {
-        public static NBTTagCompound read(InputStream input)
+        public static NBTTagCompound read(InputStream var0)
         {
-            var stream = new DataInputStream(new GZIPInputStream(input));
+            DataInputStream var1 = new(new GZIPInputStream(var0));
 
-            NBTTagCompound tag;
-
+            NBTTagCompound var2;
             try
             {
-                tag = read((DataInput) stream);
+                var2 = read((DataInput)var1);
             }
             finally
             {
-                stream.close();
+                var1.close();
             }
 
-            return tag;
+            return var2;
         }
 
-        public static void writeGzippedCompoundToOutputStream(NBTTagCompound tag, OutputStream output)
+        public static void writeGzippedCompoundToOutputStream(NBTTagCompound var0, OutputStream var1)
         {
-            var stream = new DataOutputStream(new GZIPOutputStream(output));
+            DataOutputStream var2 = new(new GZIPOutputStream(var1));
 
             try
             {
-                write(tag, stream);
+                write(var0, var2);
             }
             finally
             {
-                stream.close();
+                var2.close();
             }
+
         }
 
-        public static NBTTagCompound read(DataInput input)
+        public static NBTTagCompound read(DataInput var0)
         {
-            var tag = NBTBase.readTag(input);
-            
-            if (tag is NBTTagCompound compound)
+            NBTBase var1 = NBTBase.readTag(var0);
+            if (var1 is NBTTagCompound)
             {
-                return compound;
+                return (NBTTagCompound)var1;
             }
-
-            throw new InvalidOperationException("Root tag must be a named compound tag");
+            else
+            {
+                throw new java.io.IOException("Root tag must be a named compound tag");
+            }
         }
 
-        public static void write(NBTTagCompound tag, DataOutput output)
+        public static void write(NBTTagCompound var0, DataOutput var1)
         {
-            NBTBase.writeTag(tag, output);
+            NBTBase.writeTag(var0, var1);
         }
     }
+
 }

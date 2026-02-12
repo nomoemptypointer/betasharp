@@ -1,70 +1,76 @@
 using java.io;
+using java.util;
 
 namespace betareborn.NBT
 {
-    public sealed class NBTTagList : NBTBase
+    public class NBTTagList : NBTBase
     {
-        private List<NBTBase> tagList = [];
+
+        private List tagList = new ArrayList();
         private byte tagType;
 
-        public override void writeTagContents(DataOutput output)
+        public override void writeTagContents(DataOutput var1)
         {
-            if (tagList.Count > 0)
+            if (tagList.size() > 0)
             {
-                tagType = tagList[0].getType();
+                tagType = ((NBTBase)tagList.get(0)).getType();
             }
             else
             {
                 tagType = 1;
             }
 
-            output.writeByte(tagType);
-            output.writeInt(tagList.Count);
+            var1.writeByte(tagType);
+            var1.writeInt(tagList.size());
 
-            foreach (var tag in tagList)
+            for (int var2 = 0; var2 < tagList.size(); ++var2)
             {
-                tag.writeTagContents(output);
+                ((NBTBase)tagList.get(var2)).writeTagContents(var1);
             }
+
         }
 
-        public override void readTagContents(DataInput input)
+        public override void readTagContents(DataInput var1)
         {
-            tagType = input.readByte();
-            var length = input.readInt();
-            tagList = [];
+            tagType = var1.readByte();
+            int var2 = var1.readInt();
+            tagList = new ArrayList();
 
-            for (var index = 0; index < length; ++index)
+            for (int var3 = 0; var3 < var2; ++var3)
             {
-                var tag = createTagOfType(tagType);
-                tag.readTagContents(input);
-                tagList.Add(tag);
+                NBTBase var4 = createTagOfType(tagType);
+                var4.readTagContents(var1);
+
+                tagList.add(var4);
             }
+
         }
 
         public override byte getType()
         {
-            return 9;
+            return (byte)9;
         }
 
         public override string toString()
         {
-            return $"{tagList.Count} entries of type {getTagName(tagType)}";
+            return "" + tagList.size() + " entries of type " + NBTBase.getTagName(tagType);
         }
 
-        public void setTag(NBTBase value)
+        public void setTag(NBTBase var1)
         {
-            tagType = value.getType();
-            tagList.Add(value);
+            tagType = var1.getType();
+            tagList.add(var1);
         }
 
-        public NBTBase tagAt(int value)
+        public NBTBase tagAt(int var1)
         {
-            return tagList[value];
+            return (NBTBase)tagList.get(var1);
         }
 
         public int tagCount()
         {
-            return tagList.Count;
+            return tagList.size();
         }
     }
+
 }

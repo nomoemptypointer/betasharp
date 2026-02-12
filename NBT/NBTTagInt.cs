@@ -2,37 +2,38 @@ using java.io;
 
 namespace betareborn.NBT
 {
-    public sealed class NBTTagInt : NBTBase
+    public class NBTTagInt : NBTBase
     {
+
         public int intValue;
 
         public NBTTagInt()
         {
         }
 
-        public NBTTagInt(int value)
+        public NBTTagInt(int var1)
         {
-            intValue = value;
+            intValue = var1;
         }
 
-        public override void writeTagContents(DataOutput output)
+        public override void writeTagContents(DataOutput var1)
         {
-            output.writeInt(intValue);
+            var1.writeInt(intValue);
         }
-
-        public override void readTagContents(DataInput input)
+        public override void readTagContents(DataInput var1)
         {
-            intValue = input.readInt();
+            intValue = var1.readInt();
         }
 
         public override byte getType()
         {
-            return 3;
+            return (byte)3;
         }
 
         public override string toString()
         {
-            return intValue.ToString();
+            return "" + intValue;
         }
     }
+
 }
