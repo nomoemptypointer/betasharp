@@ -2,37 +2,47 @@ using java.io;
 
 namespace betareborn.NBT
 {
-    public sealed class NBTTagString : NBTBase
+    public class NBTTagString : NBTBase
     {
-        public string stringValue = string.Empty;
+
+        public string stringValue;
 
         public NBTTagString()
         {
         }
 
-        public NBTTagString(string value)
+        public NBTTagString(string var1)
         {
+<<<<<<< HEAD
             stringValue = value;
+=======
+            stringValue = var1;
+            if (var1 == null)
+            {
+                throw new IllegalArgumentException("Empty string not allowed");
+            }
+>>>>>>> parent of 96cef13 (Merge pull request #38 from TheVeryStarlk/nbt-refactor)
         }
 
-        public override void writeTagContents(DataOutput output)
+        public override void writeTagContents(DataOutput var1)
         {
-            output.writeUTF(stringValue);
+            var1.writeUTF(stringValue);
         }
 
-        public override void readTagContents(DataInput input)
+        public override void readTagContents(DataInput var1)
         {
-            stringValue = input.readUTF();
+            stringValue = var1.readUTF();
         }
 
         public override byte getType()
         {
-            return 8;
+            return (byte)8;
         }
 
         public override string toString()
         {
-            return stringValue;
+            return "" + stringValue;
         }
     }
+
 }
