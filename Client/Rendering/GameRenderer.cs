@@ -310,7 +310,8 @@ namespace betareborn.Client.Rendering
 
         private void renderWorld(float tickDelta)
         {
-            viewDistance = 256 >> client.options.renderDistance;
+            //viewDistance = 256 >> client.options.renderDistance;
+            viewDistance = 25000.0F; // camera far plane (this distance may zfight)
             GLManager.GL.MatrixMode(GLEnum.Projection);
             GLManager.GL.LoadIdentity();
 
