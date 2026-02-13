@@ -47,7 +47,7 @@ namespace betareborn.Client.Rendering.Chunks
         }
 
         private static readonly Vector3D<int>[] spiralOffsets;
-        private const int MAX_RENDER_DISTANCE = 32 + 1;
+        private const int MAX_RENDER_DISTANCE = (32 * 4) + 1;
         private readonly Dictionary<Vector3D<int>, SubChunkState> renderers = [];
         private readonly List<SubChunkRenderer> translucentRenderers = [];
         private readonly List<SubChunkRenderer> renderersToRemove = [];
