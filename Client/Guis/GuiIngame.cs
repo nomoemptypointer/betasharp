@@ -224,7 +224,7 @@ namespace betareborn.Client.Guis
 
                 if (mc.internalServer != null)
                 {
-                    drawString(font, $"Server TPS: {mc.internalServer.Tps:F1}", 2, 104, 14737632);
+                    drawString(font, $"Internal Server TPS: {mc.internalServer.Tps:F1}, MSPT: {mc.internalServer.Mspt:F1}", 2, 104, 14737632);
                 }
 
                 int meshY = mc.internalServer != null ? 120 : 104;
