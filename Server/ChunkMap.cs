@@ -22,20 +22,20 @@ namespace betareborn.Server
 
         public ChunkMap(MinecraftServer server, int dimensionId, int viewRadius)
         {
-            if (viewRadius > 15)
-            {
-                throw new IllegalArgumentException("Too big view radius!");
-            }
-            else if (viewRadius < 3)
-            {
-                throw new IllegalArgumentException("Too small view radius!");
-            }
-            else
-            {
+            //if (viewRadius > 15)
+            //{
+            //    throw new IllegalArgumentException("Too big view radius!");
+            //}
+            //else if (viewRadius < 3)
+            //{
+            //    throw new IllegalArgumentException("Too small view radius!");
+            //}
+            //else
+            //{
                 viewDistance = viewRadius;
                 this.server = server;
                 this.dimensionId = dimensionId;
-            }
+            //}
         }
 
         public ServerWorld getWorld()
