@@ -42,6 +42,10 @@ namespace betareborn.Server
         private int _ticksThisSecond;
         private float _currentTps;
 
+        private readonly Lock _msptLock = new();
+        private float _currentMspt;
+        private long _tickStartTime;
+
         public float Tps
         {
             get
@@ -49,6 +53,17 @@ namespace betareborn.Server
                 lock (_tpsLock)
                 {
                     return _currentTps;
+                }
+            }
+        }
+
+        public float Mspt
+        {
+            get
+            {
+                lock (_msptLock)
+                {
+                    return _currentMspt;
                 }
             }
         }
@@ -226,41 +241,71 @@ namespace betareborn.Server
             {
                 if (Init())
                 {
-                    long var1 = java.lang.System.currentTimeMillis();
-                    _lastTpsTime = var1;
+                    long lastTime = java.lang.System.currentTimeMillis();
+                    _lastTpsTime = lastTime;
                     _ticksThisSecond = 0;
 
-                    for (long var3 = 0L; running; java.lang.Thread.sleep(1L))
+                    for (long elapsedTimeAccumulator = 0L; running; java.lang.Thread.sleep(1L))
                     {
-                        long var5 = java.lang.System.currentTimeMillis();
-                        long var7 = var5 - var1;
-                        if (var7 > 2000L)
+                        long now = java.lang.System.currentTimeMillis();
+                        long delta = now - lastTime;
+
+                        if (delta > 2000L)
                         {
                             LOGGER.warning("Can't keep up! Did the system time change, or is the server overloaded?");
-                            var7 = 2000L;
+                            delta = 2000L;
                         }
 
-                        if (var7 < 0L)
+                        if (delta < 0L)
                         {
                             LOGGER.warning("Time ran backwards! Did the system time change?");
-                            var7 = 0L;
+                            delta = 0L;
                         }
 
-                        var3 += var7;
-                        var1 = var5;
+                        elapsedTimeAccumulator += delta;
+                        lastTime = now;
+
+                        void TickWithMspt()
+                        {
+                            long tickStart = java.lang.System.nanoTime();
+
+                            tick();
+
+                            long tickDurationNs = java.lang.System.nanoTime() - tickStart;
+                            float tickDurationMs = tickDurationNs / 1_000_000f;
+
+                            lock (_msptLock)
+                            {
+                                _currentMspt = tickDurationMs;
+                            }
+
+                            // rolling avg mspt
+                            //_msptSum += tickDurationMs;
+                            //_msptSamples++;
+                            //if (_msptSamples >= 20)
+                            //{
+                            //    lock (_msptLock)
+                            //    {
+                            //        _currentMspt = _msptSum / _msptSamples;
+                            //    }
+                            //    _msptSum = 0;
+                            //    _msptSamples = 0;
+                            //}
+
+                            _ticksThisSecond++;
+                        }
+
                         if (worlds[0].canSkipNight())
                         {
-                            tick();
-                            _ticksThisSecond++;
-                            var3 = 0L;
+                            TickWithMspt();
+                            elapsedTimeAccumulator = 0L;
                         }
                         else
                         {
-                            while (var3 > 50L)
+                            while (elapsedTimeAccumulator > 50L)
                             {
-                                var3 -= 50L;
-                                tick();
-                                _ticksThisSecond++;
+                                elapsedTimeAccumulator -= 50L;
+                                TickWithMspt();
                             }
                         }
 
@@ -287,17 +332,17 @@ namespace betareborn.Server
                         {
                             java.lang.Thread.sleep(10L);
                         }
-                        catch (InterruptedException var57)
+                        catch (InterruptedException ex)
                         {
-                            var57.printStackTrace();
+                            ex.printStackTrace();
                         }
                     }
                 }
             }
-            catch (System.Exception var58)
+            catch (System.Exception ex)
             {
-                Console.WriteLine(var58);
-                LOGGER.log(Level.SEVERE, "Unexpected exception", var58);
+                Console.WriteLine(ex);
+                LOGGER.log(Level.SEVERE, "Unexpected exception", ex);
 
                 while (running)
                 {
@@ -307,9 +352,9 @@ namespace betareborn.Server
                     {
                         java.lang.Thread.sleep(10L);
                     }
-                    catch (InterruptedException var56)
+                    catch (InterruptedException e)
                     {
-                        var56.printStackTrace();
+                        e.printStackTrace();
                     }
                 }
             }
@@ -320,9 +365,9 @@ namespace betareborn.Server
                     shutdown();
                     stopped = true;
                 }
-                catch (Throwable var54)
+                catch (Throwable e)
                 {
-                    var54.printStackTrace();
+                    e.printStackTrace();
                 }
                 finally
                 {
