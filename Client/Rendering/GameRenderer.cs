@@ -20,7 +20,7 @@ namespace betareborn.Client.Rendering
     {
         public static int anaglyphField;
         private readonly Minecraft client;
-        private float viewDistane = 0.0F;
+        private float viewDistance = 0.0F;
         public HeldItemRenderer itemRenderer;
         private int ticks;
         private Entity targetedEntity = null;
@@ -310,7 +310,7 @@ namespace betareborn.Client.Rendering
 
         private void renderWorld(float tickDelta)
         {
-            viewDistane = 256 >> client.options.renderDistance;
+            viewDistance = 256 >> client.options.renderDistance;
             GLManager.GL.MatrixMode(GLEnum.Projection);
             GLManager.GL.LoadIdentity();
 
@@ -318,11 +318,11 @@ namespace betareborn.Client.Rendering
             {
                 GLManager.GL.Translate((float)cameraYaw, (float)-cameraPitch, 0.0F);
                 GLManager.GL.Scale(cameraZoom, cameraZoom, 1.0D);
-                GLU.gluPerspective(getFov(tickDelta), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistane * 2.0F);
+                GLU.gluPerspective(getFov(tickDelta), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistance * 2.0F);
             }
             else
             {
-                GLU.gluPerspective(getFov(tickDelta), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistane * 2.0F);
+                GLU.gluPerspective(getFov(tickDelta), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistance * 2.0F);
             }
 
             GLManager.GL.MatrixMode(GLEnum.Modelview);
@@ -356,7 +356,7 @@ namespace betareborn.Client.Rendering
                 GLManager.GL.Translate((float)cameraYaw, (float)-cameraPitch, 0.0F);
                 GLManager.GL.Scale(cameraZoom, cameraZoom, 1.0D);
             }
-            GLU.gluPerspective(getFov(tickDelta, true), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistane * 2.0F);
+            GLU.gluPerspective(getFov(tickDelta, true), client.displayWidth / (float)client.displayHeight, 0.05F, viewDistance * 2.0F);
             GLManager.GL.MatrixMode(GLEnum.Modelview);
             GLManager.GL.LoadIdentity();
 
@@ -941,17 +941,17 @@ namespace betareborn.Client.Rendering
             else
             {
                 GLManager.GL.Fog(GLEnum.FogMode, (int)GLEnum.Linear);
-                GLManager.GL.Fog(GLEnum.FogStart, viewDistane * 0.25F);
-                GLManager.GL.Fog(GLEnum.FogEnd, viewDistane);
+                GLManager.GL.Fog(GLEnum.FogStart, viewDistance * 0.25F);
+                GLManager.GL.Fog(GLEnum.FogEnd, viewDistance);
                 client.terrainRenderer.chunkRenderer.SetFogMode(0);
-                client.terrainRenderer.chunkRenderer.SetFogStart(viewDistane * 0.25f);
-                client.terrainRenderer.chunkRenderer.SetFogEnd(viewDistane);
+                client.terrainRenderer.chunkRenderer.SetFogStart(viewDistance * 0.25f);
+                client.terrainRenderer.chunkRenderer.SetFogEnd(viewDistance);
                 if (mode < 0)
                 {
                     GLManager.GL.Fog(GLEnum.FogStart, 0.0F);
-                    GLManager.GL.Fog(GLEnum.FogEnd, viewDistane * 0.8F);
+                    GLManager.GL.Fog(GLEnum.FogEnd, viewDistance * 0.8F);
                     client.terrainRenderer.chunkRenderer.SetFogStart(0.0f);
-                    client.terrainRenderer.chunkRenderer.SetFogEnd(viewDistane * 0.8f);
+                    client.terrainRenderer.chunkRenderer.SetFogEnd(viewDistance * 0.8f);
                 }
 
                 if (client.world.dimension.isNether)
