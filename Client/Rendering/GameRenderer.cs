@@ -604,9 +604,9 @@ namespace betareborn.Client.Rendering
             }
 
             applyFog(0);
-            GLManager.GL.Enable(GLEnum.Fog);
-            var5.renderClouds(tickDelta);
-            GLManager.GL.Disable(GLEnum.Fog);
+            //GLManager.GL.Enable(GLEnum.Fog);
+            //var5.renderClouds(tickDelta);
+            //GLManager.GL.Disable(GLEnum.Fog);
             applyFog(1);
             if (cameraZoom == 1.0D)
             {
