@@ -65,15 +65,17 @@ namespace betareborn.Client.Rendering
             prevThirdPersonPitch = thirdPersonPitch;
             prevCameraRoll = cameraRoll;
             prevCameraRollAmount = cameraRollAmount;
-            if (client.camera == null)
-            {
-                client.camera = client.player;
-            }
+            client.camera ??= client.player;
 
-            float var1 = client.world.getLuminance(MathHelper.floor_double(client.camera.x), MathHelper.floor_double(client.camera.y), MathHelper.floor_double(client.camera.z));
-            float var2 = (3 - client.options.renderDistance) / 3.0F;
-            float var3 = var1 * (1.0F - var2) + var2;
-            viewBob += (var3 - viewBob) * 0.1F;
+            float luminance = client.world.getLuminance(
+                MathHelper.floor_double(client.camera.x),
+                MathHelper.floor_double(client.camera.y),
+                MathHelper.floor_double(client.camera.z)
+            );
+            float distanceFactor = (3 - client.options.renderDistance) / 3.0F;
+            float brightness = luminance * (1.0F - distanceFactor) + distanceFactor; 
+            
+            viewBob += (brightness - viewBob) * 0.1F;
             ++ticks;
             itemRenderer.updateEquippedItem();
             renderRain();
