@@ -67,6 +67,7 @@ public class ChunkRenderer
     private float fogStart;
     private float fogEnd;
     private Vector4D<float> fogColor;
+    private float worldBrightness;
 
     public int LoadedMeshes => renderers.Count;
     public int TranslucentMeshes { get; private set; }
@@ -106,6 +107,7 @@ public class ChunkRenderer
         chunkShader.SetUniform1("fogStart", fogStart);
         chunkShader.SetUniform1("fogEnd", fogEnd);
         chunkShader.SetUniform4("fogColor", fogColor);
+        chunkShader.SetUniform1("worldBrightness", worldBrightness);
 
         int wrappedTicks = (int)(ticks % 24000);
         chunkShader.SetUniform1("time", (wrappedTicks + partialTicks) / 20.0f);

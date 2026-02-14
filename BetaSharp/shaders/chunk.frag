@@ -12,11 +12,12 @@ uniform float fogDensity;
 uniform float fogStart;
 uniform float fogEnd;
 uniform int fogMode;
+uniform float worldBrightness;
 
 void main() 
 {
     vec4 texColor = texture(textureSampler, texCoord);
-    vec4 finalColor = texColor * vertexColor;
+    vec4 finalColor = texColor * vertexColor * 0.25f;
 
     if (finalColor.a < 0.001)
     {
