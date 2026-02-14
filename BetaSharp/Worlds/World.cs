@@ -2193,7 +2193,7 @@ public abstract class World : java.lang.Object, BlockView
                     LightUpdate mcb = lightingQueue[lastIndex];
 
                     lightingQueue.RemoveAt(lastIndex);
-                    mcb.updateLight(this);
+                    mcb.UpdateLight(this);
                 }
 
                 var2 = false;
@@ -2249,7 +2249,7 @@ public abstract class World : java.lang.Object, BlockView
                         for (int var13 = 0; var13 < var12; ++var13)
                         {
                             ref LightUpdate var14 = ref span[lightingQueue.Count - var13 - 1];
-                            if (var14.lightType == type && var14.expand(minX, minY, minZ, maxX, maxY, maxZ))
+                            if (var14.lightType == type && var14.Expand(minX, minY, minZ, maxX, maxY, maxZ))
                             {
                                 return;
                             }
