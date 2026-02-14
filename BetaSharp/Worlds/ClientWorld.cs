@@ -31,11 +31,11 @@ public class ClientWorld : World
     public override void tick(int _)
     {
         setTime(getTime() + 1L);
-        int var1 = getAmbientDarkness(1.0F);
+        int calculatedAmbientDarkness = GetAmbientDarkness(1.0F);
         int var2;
-        if (var1 != ambientDarkness)
+        if (calculatedAmbientDarkness != ambientDarkness)
         {
-            ambientDarkness = var1;
+            ambientDarkness = calculatedAmbientDarkness;
 
             for (var2 = 0; var2 < eventListeners.Count; ++var2)
             {

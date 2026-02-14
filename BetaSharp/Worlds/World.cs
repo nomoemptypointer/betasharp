@@ -674,41 +674,33 @@ public abstract class World : java.lang.Object, BlockView
         return getLightLevel(x, y, z, true);
     }
 
-    public int getLightLevel(int x, int y, int z, bool bl)
+    public int getLightLevel(int x, int y, int z, bool checkNeighborsForTransparentBlocks)
     {
         if (x >= -32000000 && z >= -32000000 && x < 32000000 && z <= 32000000)
         {
-            if (bl)
+            if (checkNeighborsForTransparentBlocks)
             {
-                int var5 = getBlockId(x, y, z);
-                if (var5 == Block.SLAB.id || var5 == Block.FARMLAND.id || var5 == Block.COBBLESTONE_STAIRS.id || var5 == Block.WOODEN_STAIRS.id)
+                int blockId = getBlockId(x, y, z);
+
+                if (blockId == Block.SLAB.id ||
+                    blockId == Block.FARMLAND.id ||
+                    blockId == Block.COBBLESTONE_STAIRS.id ||
+                    blockId == Block.WOODEN_STAIRS.id)
                 {
-                    int var6 = getLightLevel(x, y + 1, z, false);
-                    int var7 = getLightLevel(x + 1, y, z, false);
-                    int var8 = getLightLevel(x - 1, y, z, false);
-                    int var9 = getLightLevel(x, y, z + 1, false);
-                    int var10 = getLightLevel(x, y, z - 1, false);
-                    if (var7 > var6)
-                    {
-                        var6 = var7;
-                    }
+                    int lightAbove = getLightLevel(x, y + 1, z, false);
+                    int lightEast = getLightLevel(x + 1, y, z, false);
+                    int lightWest = getLightLevel(x - 1, y, z, false);
+                    int lightSouth = getLightLevel(x, y, z + 1, false);
+                    int lightNorth = getLightLevel(x, y, z - 1, false);
 
-                    if (var8 > var6)
-                    {
-                        var6 = var8;
-                    }
+                    int brightest = lightAbove;
 
-                    if (var9 > var6)
-                    {
-                        var6 = var9;
-                    }
+                    if (lightEast > brightest) brightest = lightEast;
+                    if (lightWest > brightest) brightest = lightWest;
+                    if (lightSouth > brightest) brightest = lightSouth;
+                    if (lightNorth > brightest) brightest = lightNorth;
 
-                    if (var10 > var6)
-                    {
-                        var6 = var10;
-                    }
-
-                    return var6;
+                    return brightest;
                 }
             }
 
@@ -723,10 +715,12 @@ public abstract class World : java.lang.Object, BlockView
                     y = 127;
                 }
 
-                Chunk var11 = getChunk(x >> 4, z >> 4);
-                x &= 15;
-                z &= 15;
-                return var11.getLight(x, y, z, ambientDarkness);
+                Chunk chunk = getChunk(x >> 4, z >> 4);
+
+                int localX = x & 15;
+                int localZ = z & 15;
+
+                return chunk.getLight(localX, y, localZ, ambientDarkness);
             }
         }
         else
@@ -734,6 +728,7 @@ public abstract class World : java.lang.Object, BlockView
             return 15;
         }
     }
+
 
     public bool isTopY(int x, int y, int z)
     {
@@ -1293,25 +1288,26 @@ public abstract class World : java.lang.Object, BlockView
         return collidingBoundingBoxes;
     }
 
-    public int getAmbientDarkness(float partialTicks)
+    public int GetAmbientDarkness(float partialTicks)
     {
-        float var2 = getTime(partialTicks);
-        float var3 = 1.0F - (MathHelper.cos(var2 * (float)java.lang.Math.PI * 2.0F) * 2.0F + 0.5F);
-        if (var3 < 0.0F)
-        {
-            var3 = 0.0F;
-        }
+        float timeOfDay = getTime(partialTicks);
 
-        if (var3 > 1.0F)
-        {
-            var3 = 1.0F;
-        }
+        float daylightFactor =
+            1.0F - (MathHelper.cos((float)(timeOfDay * System.Math.PI * 2.0F)) * 2.0F + 0.5F);
 
-        var3 = 1.0F - var3;
-        var3 = (float)((double)var3 * (1.0D - (double)(getRainGradient(partialTicks) * 5.0F) / 16.0D));
-        var3 = (float)((double)var3 * (1.0D - (double)(getThunderGradient(partialTicks) * 5.0F) / 16.0D));
-        var3 = 1.0F - var3;
-        return (int)(var3 * 11.0F);
+        if (daylightFactor < 0.0F)
+            daylightFactor = 0.0F;
+
+        if (daylightFactor > 1.0F)
+            daylightFactor = 1.0F;
+
+        daylightFactor = 1.0F - daylightFactor;
+
+        daylightFactor *= 1.0F - (getRainGradient(partialTicks) * 5.0F) / 16.0F;
+        daylightFactor *= 1.0F - (getThunderGradient(partialTicks) * 5.0F) / 16.0F;
+
+        float ambientDarkness = 1.0F - daylightFactor;
+        return (int)(ambientDarkness * 11.0F);
     }
 
     public Vector3D<double> getSkyColor(Entity entity, float partialTicks)
@@ -2277,12 +2273,11 @@ public abstract class World : java.lang.Object, BlockView
 
     public void updateSkyBrightness()
     {
-        int var1 = getAmbientDarkness(1.0F);
-        if (var1 != ambientDarkness)
+        int calculatedAmbientDarkness = GetAmbientDarkness(1.0F);
+        if (calculatedAmbientDarkness != ambientDarkness)
         {
-            ambientDarkness = var1;
+            ambientDarkness = calculatedAmbientDarkness;
         }
-
     }
 
     public void allowSpawning(bool allowMonsterSpawning, bool allowMobSpawning)
@@ -2318,7 +2313,7 @@ public abstract class World : java.lang.Object, BlockView
         Profiler.Stop("unload100OldestChunks");
 
         Profiler.Start("updateSkylightSubtracted");
-        int var4 = getAmbientDarkness(1.0F);
+        int var4 = GetAmbientDarkness(1.0F);
         if (var4 != ambientDarkness)
         {
             ambientDarkness = var4;

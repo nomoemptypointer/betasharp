@@ -74,6 +74,7 @@ public class ChunkRenderer
 
     public ChunkRenderer(World world)
     {
+        worldBrightness = 1.0f;
         meshGenerator = new();
         this.world = world;
 
