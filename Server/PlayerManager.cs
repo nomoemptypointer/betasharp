@@ -31,9 +31,9 @@ namespace betareborn.Server
         {
             chunkMaps = new ChunkMap[2];
             this.server = server;
-            int var2 = server.config.GetViewDistance(16 * 4); // hehe
-            chunkMaps[0] = new ChunkMap(server, 0, 16 * 4);
-            chunkMaps[1] = new ChunkMap(server, -1, 16 * 4);
+            //int var2 = server.config.GetViewDistance(10);
+            chunkMaps[0] = new ChunkMap(server, 0, 64);
+            chunkMaps[1] = new ChunkMap(server, -1, 2); // Nether
             maxPlayerCount = server.config.GetMaxPlayers(20);
             whitelistEnabled = server.config.GetWhiteList(false);
         }

@@ -47,7 +47,7 @@ namespace betareborn.Client.Rendering.Chunks
         }
 
         private static readonly Vector3D<int>[] spiralOffsets;
-        private const int MAX_RENDER_DISTANCE = (32 * 4) + 1;
+        private const int MAX_RENDER_DISTANCE = 64 + 1;
         private readonly Dictionary<Vector3D<int>, SubChunkState> renderers = [];
         private readonly List<SubChunkRenderer> translucentRenderers = [];
         private readonly List<SubChunkRenderer> renderersToRemove = [];
@@ -97,7 +97,8 @@ namespace betareborn.Client.Rendering.Chunks
 
         public void Render(Culler camera, Vector3D<double> viewPos, int renderDistance, long ticks, float partialTicks, bool envAnim)
         {
-            lastRenderDistance = (CalculateRealRenderDistance(renderDistance) * 4);
+            //lastRenderDistance = CalculateRealRenderDistance(renderDistance);
+            lastRenderDistance = 64;
             lastViewPos = viewPos;
 
             chunkShader.Bind();
@@ -370,9 +371,9 @@ namespace betareborn.Client.Rendering.Chunks
             bool priorityPassClean = true;
 
             //TODO: MAKE THESE CONFIGURABLE
-            const int MAX_CHUNKS_PER_FRAME = 32 * 8;
-            const int PRIORITY_PASS_LIMIT = 1024 * 8;
-            const int BACKGROUND_PASS_LIMIT = 2048 * 8;
+            const int MAX_CHUNKS_PER_FRAME = 512;
+            const int PRIORITY_PASS_LIMIT = 1024 * 16;
+            const int BACKGROUND_PASS_LIMIT = 2048 * 16;
 
             for (int i = 0; i < PRIORITY_PASS_LIMIT && i < spiralOffsets.Length; i++)
             {

@@ -7,11 +7,13 @@ using betareborn.Util;
 using betareborn.Util.Maths;
 using betareborn.Worlds;
 using java.lang;
+using java.util.logging;
 
 namespace betareborn.Server
 {
     public class ChunkMap
     {
+        public static Logger LOGGER = Logger.getLogger("Minecraft");
         public List<ServerPlayerEntity> players = [];
         private readonly LongObjectHashMap chunkMapping = new();
         private readonly List<TrackedChunk> chunksToUpdate = [];
@@ -22,20 +24,18 @@ namespace betareborn.Server
 
         public ChunkMap(MinecraftServer server, int dimensionId, int viewRadius)
         {
-            //if (viewRadius > 15)
-            //{
-            //    throw new IllegalArgumentException("Too big view radius!");
-            //}
-            //else if (viewRadius < 3)
-            //{
-            //    throw new IllegalArgumentException("Too small view radius!");
-            //}
-            //else
-            //{
-                viewDistance = viewRadius;
-                this.server = server;
-                this.dimensionId = dimensionId;
-            //}
+            if (viewRadius > 15)
+            {
+                LOGGER.warning("View radius exceeds 16 chunks. Except lag.");
+            }
+            if (viewRadius < 1)
+            {
+                throw new IllegalArgumentException("View radius cannot be negative!");
+            }
+
+            viewDistance = viewRadius;
+            this.server = server;
+            this.dimensionId = dimensionId;
         }
 
         public ServerWorld getWorld()
