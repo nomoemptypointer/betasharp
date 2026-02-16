@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using BetaSharp.Util;
 using java.lang;
 using java.nio;
@@ -288,6 +288,7 @@ public class Tessellator : java.lang.Object
                 GLManager.GL.VertexPointer(3, GLEnum.Float, 32, (void*)0);
 
                 GLManager.GL.EnableClientState(GLEnum.VertexArray);
+                GLManager.GL.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
                 if (drawMode == 7 && convertQuadsToTriangles)
                 {
                     GLManager.GL.DrawArrays(GLEnum.Triangles, 0, (uint)vertexCount);
@@ -296,6 +297,7 @@ public class Tessellator : java.lang.Object
                 {
                     GLManager.GL.DrawArrays((GLEnum)drawMode, 0, (uint)vertexCount);
                 }
+                GLManager.GL.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
 
                 GLManager.GL.DisableClientState(GLEnum.VertexArray);
                 if (hasTexture)
