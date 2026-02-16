@@ -158,7 +158,9 @@ public class SubChunkRenderer : IDisposable
 
         vertexArrays[pass].Bind();
 
+        GLManager.GL.PolygonMode(GLEnum.FrontAndBack, GLEnum.Line);
         GLManager.GL.DrawArrays(GLEnum.Triangles, 0, (uint)vertexCount);
+        GLManager.GL.PolygonMode(GLEnum.FrontAndBack, GLEnum.Fill);
     }
 
     public void Dispose()
