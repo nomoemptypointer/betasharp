@@ -7,7 +7,7 @@ using Silk.NET.Maths;
 
 namespace BetaSharp.Client.Rendering.Chunks;
 
-public struct MeshBuildResult
+public struct MeshBuildResult : IDisposable
 {
     public PooledList<ChunkVertex> Solid;
     public PooledList<ChunkVertex> Translucent;
@@ -85,7 +85,7 @@ public class ChunkMeshGenerator : IDisposable
             }
             finally
             {
-                cache.Dispose();
+                //cache.Dispose();
                 concurrencySemaphore?.Release();
             }
         });
@@ -163,5 +163,6 @@ public class ChunkMeshGenerator : IDisposable
     {
         results.Dispose();
         listPool.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
