@@ -20,13 +20,6 @@ public class DedicatedServer(IServerConfiguration config) : MinecraftServer(conf
         var1.setDaemon(true);
         var1.start();
 
-        Log.Info("Starting minecraft server version Beta 1.7.3");
-        if (Runtime.getRuntime().maxMemory() / 1024L / 1024L < 512L)
-        {
-            Log.Warn("**** NOT ENOUGH RAM!");
-            Log.Warn("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
-        }
-
         Log.Info("Loading properties");
 
         string var2 = config.GetServerIp("");
