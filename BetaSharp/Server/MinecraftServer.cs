@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using BetaSharp.Network.Packets.S2CPlay;
 using BetaSharp.Server.Commands;
 using BetaSharp.Server.Entities;
@@ -7,10 +8,13 @@ using BetaSharp.Server.Worlds;
 using BetaSharp.Util;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds;
+using BetaSharp.Worlds.Chunks;
 using BetaSharp.Worlds.Storage;
 using java.lang;
 using java.util;
+using java.util.concurrent;
 using java.util.logging;
+using Silk.NET.Maths;
 
 namespace BetaSharp.Server;
 
@@ -42,6 +46,10 @@ public abstract class MinecraftServer : Runnable, CommandOutput
     private float _currentTps;
 
     private volatile bool _isPaused;
+
+    private readonly SemaphoreSlim _chunkThreadLimiter = new(Environment.ProcessorCount * 4);
+    private int dimensionPreparingCompletion;
+    private readonly CancellationTokenSource _logTaskCts = new();
 
     public float Tps
     {
@@ -76,7 +84,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         playerManager = CreatePlayerManager();
         entityTrackers[0] = new EntityTracker(this, 0);
         entityTrackers[1] = new EntityTracker(this, -1);
-        long startTime = java.lang.System.nanoTime();
+        long startTime = java.lang.System.currentTimeMillis();
         string worldName = config.GetLevelName("world");
         string seedString = config.GetLevelSeed("");
         long seed = new java.util.Random().nextLong();
@@ -103,7 +111,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
 
         if (logHelp)
         {
-            Log.Info($"Done ({java.lang.System.nanoTime() - startTime}ns)! For help, type \"help\" or \"?\"");
+            Log.Info($"Done ({java.lang.System.currentTimeMillis() - startTime}ms)! For help, type \"help\" or \"?\"");
         }
 
         return true;
@@ -112,7 +120,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
     private void loadWorld(WorldStorageSource storageSource, string worldDir, long seed)
     {
         worlds = new ServerWorld[2];
-        RegionWorldStorage worldStorage = new RegionWorldStorage(getFile("."), worldDir, true);
+        RegionWorldStorage worldStorage = new(getFile("."), worldDir, true);
 
         for (int i = 0; i < worlds.Length; i++)
         {
@@ -132,6 +140,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         }
 
         short startRegionSize = 196;
+        int totalToLoad = (startRegionSize * 2 + 1) * (startRegionSize * 2 + 1);
         long lastTimeLogged = java.lang.System.currentTimeMillis();
 
         for (int i = 0; i < worlds.Length; i++)
@@ -141,36 +150,62 @@ public abstract class MinecraftServer : Runnable, CommandOutput
             {
                 ServerWorld world = worlds[i];
                 Vec3i spawnPos = world.getSpawnPos();
+                dimensionPreparingCompletion = 0;
+                List<Task> tasks = [];
 
                 for (int x = -startRegionSize; x <= startRegionSize && running; x += 16)
                 {
                     for (int z = -startRegionSize; z <= startRegionSize && running; z += 16)
                     {
-                        long currentTime = java.lang.System.currentTimeMillis();
-                        if (currentTime < lastTimeLogged)
-                        {
-                            lastTimeLogged = currentTime;
-                        }
+                        int chunkX = (spawnPos.x + x) >> 4;
+                        int chunkZ = (spawnPos.z + z) >> 4;
 
+                        tasks.Add(PrepareChunkAsync(world, chunkX, chunkZ));
+                    }
+                }
+
+                Task logTask = Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        long currentTime = java.lang.System.currentTimeMillis();
                         if (currentTime > lastTimeLogged + 1000L)
                         {
-                            int total = (startRegionSize * 2 + 1) * (startRegionSize * 2 + 1);
-                            int complete = (x + startRegionSize) * (startRegionSize * 2 + 1) + z + 1;
-                            logProgress("Preparing spawn area", complete * 100 / total);
+                            logProgress($"Preparing spawn area [{dimensionPreparingCompletion}/{totalToLoad}]", dimensionPreparingCompletion * 100 / totalToLoad);
                             lastTimeLogged = currentTime;
                         }
 
-                        world.chunkCache.loadChunk(spawnPos.x + x >> 4, spawnPos.z + z >> 4);
-
-                        while (world.doLightingUpdates() && running)
-                        {
-                        }
+                        if(_logTaskCts.IsCancellationRequested)
+                            break;
                     }
+                });
+                Task.WaitAll([.. tasks]);
+                _logTaskCts.Cancel();
+
+                while (world.doLightingUpdates() && running)
+                {
                 }
             }
         }
 
         clearProgress();
+    }
+
+    private async Task PrepareChunkAsync(ServerWorld world, int chunkX, int chunkZ)
+    {
+        await _chunkThreadLimiter.WaitAsync();
+        try
+        {
+            await Task.Run(() =>
+            {
+                world.chunkCache.loadChunk(chunkX, chunkZ);
+            });
+            Interlocked.Increment(ref dimensionPreparingCompletion);
+        }
+        finally
+        {
+            _chunkThreadLimiter.Release();
+        }
     }
 
     private void logProgress(string progressType, int progress)
