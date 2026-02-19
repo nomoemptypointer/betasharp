@@ -196,10 +196,6 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         await _chunkThreadLimiter.WaitAsync();
         try
         {
-            await Task.Run(() =>
-            {
-                world.chunkCache.loadChunk(chunkX, chunkZ);
-            });
             Interlocked.Increment(ref dimensionPreparingCompletion);
         }
         finally
