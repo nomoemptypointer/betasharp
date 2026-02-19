@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace BetaSharp.Util.Maths.Noise;
 
 public class PerlinNoiseSampler : NoiseSampler
@@ -72,23 +70,22 @@ public class PerlinNoiseSampler : NoiseSampler
         int b = _permutations[xMod255 + 1] + yMod255;
         int ba = _permutations[b] + zMod255;
         int bb = _permutations[b + 1] + zMod255;
-        return lerp(sZ, lerp(sY,    lerp(sX, grad(_permutations[aa],     x,      y,      z),
+        return lerp(sZ, lerp(sY,    lerp(sX,    grad(_permutations[aa],     x,      y,      z),
                                                 grad(_permutations[ba],     x-1,    y,      z)),
-                                    lerp(sX, grad(_permutations[ab],     x,      y-1,    z),
+                                    lerp(sX,    grad(_permutations[ab],     x,      y-1,    z),
                                                 grad(_permutations[bb],     x-1,    y-1,    z))),
-                        lerp(sY,    lerp(sX, grad(_permutations[aa+1],   x,      y,      z-1),
+                        lerp(sY,    lerp(sX,    grad(_permutations[aa+1],   x,      y,      z-1),
                                                 grad(_permutations[ba+1],   x-1,    y,      z-1)),
-                                    lerp(sX, grad(_permutations[ab+1],   x,      y-1,    z-1),
+                                    lerp(sX,    grad(_permutations[ab+1],   x,      y-1,    z-1),
                                                 grad(_permutations[bb+1],   x-1,    y-1,    z-1))));
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static double lerp(double a, double b, double t)
+    public double lerp(double t, double a, double b)
     {
         return a + t * (b - a);
     }
 
-    public static double grad(int hash, double x, double y)
+    public double grad(int hash, double x, double y)
     {
         int h = hash & 15;
         double u = (1 - ((h & 8) >> 3)) * x;
@@ -96,7 +93,7 @@ public class PerlinNoiseSampler : NoiseSampler
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 
-    public static double grad(int hash, double x, double y, double z)
+    public double grad(int hash, double x, double y, double z)
     {
         int h = hash & 15;
         double u = h < 8 ? x : y;
@@ -158,9 +155,9 @@ public class PerlinNoiseSampler : NoiseSampler
                     int ab = _permutations[aa] + zMod255;
                     int ba = _permutations[xMod255 + 1];
                     int bb = _permutations[ba] + zMod255;
-                    double xLerpZ0 = lerp(xFinal, grad(_permutations[ab],     xCoord,         zCoord),
+                    double xLerpZ0 = lerp(xFinal,   grad(_permutations[ab],     xCoord,         zCoord),
                                                     grad(_permutations[bb],     xCoord-1,   0,  zCoord));
-                    double xLerpZ1 = lerp(xFinal, grad(_permutations[ab+1],   xCoord,     0,  zCoord-1),
+                    double xLerpZ1 = lerp(xFinal,   grad(_permutations[ab+1],   xCoord,     0,  zCoord-1),
                                                     grad(_permutations[bb+1],   xCoord-1,   0,  zCoord-1));
                     double finalNoise = lerp(zFinal, xLerpZ0, xLerpZ1);
                     buffer[counter++] += finalNoise * amplitude;
