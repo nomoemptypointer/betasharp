@@ -42,36 +42,31 @@ public class ServerChunkCache : ChunkSource
         }
     }
 
-
     public Chunk loadChunk(int chunkX, int chunkZ)
     {
-        int var3 = ChunkPos.hashCode(chunkX, chunkZ);
-        _chunksToUnload.Remove(var3);
-        _chunksByPos.TryGetValue(var3, out Chunk? var4);
-        if (var4 == null)
+        int hashCode = ChunkPos.hashCode(chunkX, chunkZ);
+        _chunksToUnload.Remove(hashCode);
+        _chunksByPos.TryGetValue(hashCode, out Chunk? chunk);
+        if (chunk == null)
         {
-            var4 = loadChunkFromStorage(chunkX, chunkZ);
-            if (var4 == null)
+            chunk = loadChunkFromStorage(chunkX, chunkZ); // If chunk was generated return loaded chunk else return null
+            if (chunk == null)
             {
                 if (_generator == null)
-                {
-                    var4 = _empty;
-                }
+                    chunk = _empty;
                 else
-                {
-                    var4 = _generator.getChunk(chunkX, chunkZ);
-                }
+                    chunk = _generator.getChunk(chunkX, chunkZ); // If chunk is null, generate a chunk
             }
 
-            _chunksByPos.Add(var3, var4);
-            _chunks.Add(var4);
-            if (var4 != null)
+            _chunksByPos.Add(hashCode, chunk);
+            _chunks.Add(chunk);
+            if (chunk != null)
             {
-                var4.populateBlockLight();
-                var4.load();
+                chunk.populateBlockLight();
+                chunk.load();
             }
 
-            if (!var4.terrainPopulated
+            if (!chunk.terrainPopulated
                 && isChunkLoaded(chunkX + 1, chunkZ + 1)
                 && isChunkLoaded(chunkX, chunkZ + 1)
                 && isChunkLoaded(chunkX + 1, chunkZ))
@@ -107,7 +102,7 @@ public class ServerChunkCache : ChunkSource
             }
         }
 
-        return var4;
+        return chunk;
     }
 
 
