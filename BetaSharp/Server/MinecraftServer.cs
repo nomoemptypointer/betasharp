@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using BetaSharp.Network.Packets.S2CPlay;
 using BetaSharp.Server.Commands;
 using BetaSharp.Server.Entities;
@@ -12,9 +11,6 @@ using BetaSharp.Worlds.Chunks;
 using BetaSharp.Worlds.Storage;
 using java.lang;
 using java.util;
-using java.util.concurrent;
-using java.util.logging;
-using Silk.NET.Maths;
 
 namespace BetaSharp.Server;
 
@@ -48,7 +44,6 @@ public abstract class MinecraftServer : Runnable, CommandOutput
     private volatile bool _isPaused;
 
     private readonly SemaphoreSlim _chunkThreadLimiter = new(Environment.ProcessorCount * 4);
-    private int dimensionPreparingCompletion;
     private readonly CancellationTokenSource _logTaskCts = new();
 
     public float Tps
@@ -140,42 +135,51 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         }
 
         short startRegionSize = 196;
-        int totalToLoad = (startRegionSize * 2 + 1) * (startRegionSize * 2 + 1);
-        long lastTimeLogged = java.lang.System.currentTimeMillis();
+        int stepsPerAxis = ((startRegionSize * 2) / 16) + 1;
+        int totalToLoad = stepsPerAxis * stepsPerAxis;
+        int progress;
 
         for (int i = 0; i < worlds.Length; i++)
         {
             Log.Info($"Preparing start region for level {i}");
+            progress = 0;
+            List<Task> tasks = [];
             if (i == 0 || config.GetAllowNether(true))
             {
                 ServerWorld world = worlds[i];
                 Vec3i spawnPos = world.getSpawnPos();
-                dimensionPreparingCompletion = 0;
-                List<Task> tasks = [];
+
+                Task.Run(() =>
+                {
+                    while (true)
+                    {
+                        logProgress($"Preparing spawn area [{progress}/{totalToLoad}]", progress * 100 / totalToLoad);
+                        if (_logTaskCts.IsCancellationRequested)
+                            break;
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                });
 
                 for (int x = -startRegionSize; x <= startRegionSize && running; x += 16)
                 {
                     for (int z = -startRegionSize; z <= startRegionSize && running; z += 16)
                     {
-                        tasks.Add(PrepareChunkAsync(world, (spawnPos.x + x) >> 4, (spawnPos.z + z) >> 4));
+                        tasks.Add(Task.Run(async () =>
+                        {
+                            await _chunkThreadLimiter.WaitAsync();
+                            try
+                            {
+                                world.chunkCache.loadChunk((spawnPos.x + x) >> 4,(spawnPos.z + z) >> 4);
+                                Interlocked.Increment(ref progress);
+                            }
+                            finally
+                            {
+                                _chunkThreadLimiter.Release();
+                            }
+                        }));
                     }
                 }
 
-                Task logTask = Task.Run(async () =>
-                {
-                    while (true)
-                    {
-                        long currentTime = java.lang.System.currentTimeMillis();
-                        if (currentTime > lastTimeLogged + 1000L)
-                        {
-                            logProgress($"Preparing spawn area [{dimensionPreparingCompletion}/{totalToLoad}]", dimensionPreparingCompletion * 100 / totalToLoad);
-                            lastTimeLogged = currentTime;
-                        }
-
-                        if(_logTaskCts.IsCancellationRequested)
-                            break;
-                    }
-                });
                 Task.WaitAll([.. tasks]);
                 _logTaskCts.Cancel();
 
@@ -186,20 +190,6 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         }
 
         clearProgress();
-    }
-
-    private async Task PrepareChunkAsync(ServerWorld world, int chunkX, int chunkZ)
-    {
-        await _chunkThreadLimiter.WaitAsync();
-        try
-        {
-            world.chunkCache.loadChunk(chunkX, chunkZ);
-            Interlocked.Increment(ref dimensionPreparingCompletion);
-        }
-        finally
-        {
-            _chunkThreadLimiter.Release();
-        }
     }
 
     private void logProgress(string progressType, int progress)
