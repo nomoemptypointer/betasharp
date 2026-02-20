@@ -11,11 +11,11 @@ public class ServerChunkCache : ChunkSource
     private readonly Chunk _empty;
     private readonly ChunkSource _generator;
     private readonly ChunkStorage _storage;
-    public bool forceLoad = false;
     private readonly Dictionary<int, Chunk> _chunksByPos = [];
     private readonly List<Chunk> _chunks = [];
     private readonly ServerWorld _world;
-    private readonly object _chunkLock = new();
+    private readonly Lock _chunkLock = new();
+    internal bool forceLoad = false;
 
     public ServerChunkCache(ServerWorld world, ChunkStorage storage, ChunkSource generator)
     {
@@ -24,7 +24,6 @@ public class ServerChunkCache : ChunkSource
         _storage = storage;
         _generator = generator;
     }
-
 
     public bool isChunkLoaded(int x, int z)
     {
@@ -46,8 +45,8 @@ public class ServerChunkCache : ChunkSource
     public Chunk loadChunk(int chunkX, int chunkZ)
     {
         int hashCode = ChunkPos.hashCode(chunkX, chunkZ);
-
-        lock (_chunkLock)
+        
+        lock (_chunkLock) // TODO: Improve thread safety here, that's why there's a lock here
         {
             _chunksToUnload.Remove(hashCode);
             _chunksByPos.TryGetValue(hashCode, out Chunk? chunk);
@@ -109,7 +108,6 @@ public class ServerChunkCache : ChunkSource
             return chunk;
         }
     }
-
 
     public Chunk getChunk(int chunkX, int chunkZ)
     {
@@ -197,7 +195,6 @@ public class ServerChunkCache : ChunkSource
         }
     }
 
-
     public bool save(bool saveEntities, LoadingDisplay display)
     {
         int var3 = 0;
@@ -234,7 +231,6 @@ public class ServerChunkCache : ChunkSource
         return true;
     }
 
-
     public bool tick()
     {
         if (!_world.savingDisabled)
@@ -259,7 +255,6 @@ public class ServerChunkCache : ChunkSource
 
         return _generator.tick();
     }
-
 
     public bool canSave()
     {
