@@ -15,6 +15,7 @@ public class ServerChunkCache : ChunkSource
     private readonly Dictionary<int, Chunk> _chunksByPos = [];
     private readonly List<Chunk> _chunks = [];
     private readonly ServerWorld _world;
+    private readonly object _chunkLock = new();
 
     public ServerChunkCache(ServerWorld world, ChunkStorage storage, ChunkSource generator)
     {
@@ -45,64 +46,68 @@ public class ServerChunkCache : ChunkSource
     public Chunk loadChunk(int chunkX, int chunkZ)
     {
         int hashCode = ChunkPos.hashCode(chunkX, chunkZ);
-        _chunksToUnload.Remove(hashCode);
-        _chunksByPos.TryGetValue(hashCode, out Chunk? chunk);
-        if (chunk == null)
+
+        lock (_chunkLock)
         {
-            chunk = loadChunkFromStorage(chunkX, chunkZ); // If chunk was generated return loaded chunk else return null
+            _chunksToUnload.Remove(hashCode);
+            _chunksByPos.TryGetValue(hashCode, out Chunk? chunk);
             if (chunk == null)
             {
-                if (_generator == null)
-                    chunk = _empty;
-                else
-                    chunk = _generator.getChunk(chunkX, chunkZ); // If chunk is null, generate a chunk
-            }
+                chunk = loadChunkFromStorage(chunkX, chunkZ); // If chunk was generated return loaded chunk else return null
+                if (chunk == null)
+                {
+                    if (_generator == null)
+                        chunk = _empty;
+                    else
+                        chunk = _generator.getChunk(chunkX, chunkZ); // If chunk is null, generate a chunk
+                }
 
-            _chunksByPos.Add(hashCode, chunk);
-            _chunks.Add(chunk);
-            if (chunk != null)
-            {
-                chunk.populateBlockLight();
-                chunk.load();
-            }
+                _chunksByPos.Add(hashCode, chunk);
+                _chunks.Add(chunk);
 
-            if (!chunk.terrainPopulated
-                && isChunkLoaded(chunkX + 1, chunkZ + 1)
-                && isChunkLoaded(chunkX, chunkZ + 1)
-                && isChunkLoaded(chunkX + 1, chunkZ))
-            {
-                decorate(this, chunkX, chunkZ);
-            }
+                if (chunk != null)
+                {
+                    chunk.populateBlockLight();
+                    chunk.load();
+                }
 
-            if (isChunkLoaded(chunkX - 1, chunkZ)
-                && !getChunk(chunkX - 1, chunkZ).terrainPopulated
-                && isChunkLoaded(chunkX - 1, chunkZ + 1)
-                && isChunkLoaded(chunkX, chunkZ + 1)
-                && isChunkLoaded(chunkX - 1, chunkZ))
-            {
-                decorate(this, chunkX - 1, chunkZ);
-            }
+                if (!chunk.terrainPopulated
+                    && isChunkLoaded(chunkX + 1, chunkZ + 1)
+                    && isChunkLoaded(chunkX, chunkZ + 1)
+                    && isChunkLoaded(chunkX + 1, chunkZ))
+                {
+                    decorate(this, chunkX, chunkZ);
+                }
 
-            if (isChunkLoaded(chunkX, chunkZ - 1)
-                && !getChunk(chunkX, chunkZ - 1).terrainPopulated
-                && isChunkLoaded(chunkX + 1, chunkZ - 1)
-                && isChunkLoaded(chunkX, chunkZ - 1)
-                && isChunkLoaded(chunkX + 1, chunkZ))
-            {
-                decorate(this, chunkX, chunkZ - 1);
-            }
+                if (isChunkLoaded(chunkX - 1, chunkZ)
+                    && !getChunk(chunkX - 1, chunkZ).terrainPopulated
+                    && isChunkLoaded(chunkX - 1, chunkZ + 1)
+                    && isChunkLoaded(chunkX, chunkZ + 1)
+                    && isChunkLoaded(chunkX - 1, chunkZ))
+                {
+                    decorate(this, chunkX - 1, chunkZ);
+                }
 
-            if (isChunkLoaded(chunkX - 1, chunkZ - 1)
-                && !getChunk(chunkX - 1, chunkZ - 1).terrainPopulated
-                && isChunkLoaded(chunkX - 1, chunkZ - 1)
-                && isChunkLoaded(chunkX, chunkZ - 1)
-                && isChunkLoaded(chunkX - 1, chunkZ))
-            {
-                decorate(this, chunkX - 1, chunkZ - 1);
+                if (isChunkLoaded(chunkX, chunkZ - 1)
+                    && !getChunk(chunkX, chunkZ - 1).terrainPopulated
+                    && isChunkLoaded(chunkX + 1, chunkZ - 1)
+                    && isChunkLoaded(chunkX, chunkZ - 1)
+                    && isChunkLoaded(chunkX + 1, chunkZ))
+                {
+                    decorate(this, chunkX, chunkZ - 1);
+                }
+
+                if (isChunkLoaded(chunkX - 1, chunkZ - 1)
+                    && !getChunk(chunkX - 1, chunkZ - 1).terrainPopulated
+                    && isChunkLoaded(chunkX - 1, chunkZ - 1)
+                    && isChunkLoaded(chunkX, chunkZ - 1)
+                    && isChunkLoaded(chunkX - 1, chunkZ))
+                {
+                    decorate(this, chunkX - 1, chunkZ - 1);
+                }
             }
+            return chunk;
         }
-
-        return chunk;
     }
 
 
