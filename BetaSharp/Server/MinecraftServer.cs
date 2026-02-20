@@ -156,7 +156,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
                         logProgress($"Preparing spawn area [{progress}/{totalToLoad}]", progress * 100 / totalToLoad);
                         if (_logTaskCts.IsCancellationRequested)
                             break;
-                        System.Threading.Thread.Sleep(1000);
+                        System.Threading.Thread.Sleep(25);
                     }
                 });
 
@@ -164,12 +164,19 @@ public abstract class MinecraftServer : Runnable, CommandOutput
                 {
                     for (int z = -startRegionSize; z <= startRegionSize && running; z += 16)
                     {
+                        int localX = x;
+                        int localZ = z;
+                        // This needs to be done ^
+
                         tasks.Add(Task.Run(async () =>
                         {
                             await _chunkThreadLimiter.WaitAsync();
                             try
                             {
-                                world.chunkCache.loadChunk((spawnPos.x + x) >> 4,(spawnPos.z + z) >> 4);
+                                int chunkX = (spawnPos.x + localX) >> 4;
+                                int chunkZ = (spawnPos.z + localZ) >> 4;
+
+                                world.chunkCache.loadChunk(chunkX, chunkZ);
                                 Interlocked.Increment(ref progress);
                             }
                             finally
@@ -181,14 +188,14 @@ public abstract class MinecraftServer : Runnable, CommandOutput
                 }
 
                 Task.WaitAll([.. tasks]);
-                _logTaskCts.Cancel();
+                
 
                 while (world.doLightingUpdates() && running)
                 {
                 }
             }
         }
-
+        _logTaskCts.Cancel();
         clearProgress();
     }
 
