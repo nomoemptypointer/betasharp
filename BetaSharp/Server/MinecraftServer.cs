@@ -157,10 +157,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
                 {
                     for (int z = -startRegionSize; z <= startRegionSize && running; z += 16)
                     {
-                        int chunkX = (spawnPos.x + x) >> 4;
-                        int chunkZ = (spawnPos.z + z) >> 4;
-
-                        tasks.Add(PrepareChunkAsync(world, chunkX, chunkZ));
+                        tasks.Add(PrepareChunkAsync(world, (spawnPos.x + x) >> 4, (spawnPos.z + z) >> 4));
                     }
                 }
 
@@ -196,6 +193,7 @@ public abstract class MinecraftServer : Runnable, CommandOutput
         await _chunkThreadLimiter.WaitAsync();
         try
         {
+            world.chunkCache.loadChunk(chunkX, chunkZ);
             Interlocked.Increment(ref dimensionPreparingCompletion);
         }
         finally
