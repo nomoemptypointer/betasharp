@@ -5,7 +5,7 @@ using BetaSharp.Entities;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds;
 using java.util;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Rendering;
 

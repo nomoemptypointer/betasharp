@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using BetaSharp.Util;
 using java.lang;
 using java.nio;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Rendering.Core;
 

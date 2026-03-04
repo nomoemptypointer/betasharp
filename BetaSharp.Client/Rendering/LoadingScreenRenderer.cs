@@ -1,5 +1,5 @@
-﻿using BetaSharp.Client.Rendering.Core;
-using Silk.NET.OpenGL.Legacy;
+using BetaSharp.Client.Rendering.Core;
+
 
 namespace BetaSharp.Client.Rendering;
 

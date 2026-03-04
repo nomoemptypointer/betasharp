@@ -3,7 +3,7 @@ using BetaSharp.Client.Rendering.Entities.Models;
 using BetaSharp.Entities;
 using BetaSharp.Util.Maths;
 using java.lang;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Rendering.Entities;
 

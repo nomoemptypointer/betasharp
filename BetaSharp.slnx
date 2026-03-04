@@ -2,6 +2,24 @@
     <Folder Name="/Solution Items/">
         <File Path=".editorconfig" />
     </Folder>
+    <Folder Name="/veldrid2-spirv/" />
+    <Folder Name="/veldrid2-spirv/src/">
+        <Project Path="veldrid2-spirv/src/Veldrid.SPIRV.BuildTools/Veldrid.SPIRV.BuildTools.csproj" />
+        <Project Path="veldrid2-spirv/src/Veldrid.SPIRV.VariantCompiler/Veldrid.SPIRV.VariantCompiler.csproj" />
+        <Project Path="veldrid2-spirv/src/Veldrid.SPIRV/Veldrid.SPIRV.csproj" />
+    </Folder>
+    <Folder Name="/veldrid2/" />
+    <Folder Name="/veldrid2/src/">
+        <Project Path="veldrid2/src/Veldrid.ImageSharp/Veldrid.ImageSharp.csproj" />
+        <Project Path="veldrid2/src/Veldrid.ImGui/Veldrid.ImGui.csproj" />
+        <Project Path="veldrid2/src/Veldrid.MetalBindings/Veldrid.MetalBindings.csproj" />
+        <Project Path="veldrid2/src/Veldrid.OpenGLBindings/Veldrid.OpenGLBindings.csproj" />
+        <Project Path="veldrid2/src/Veldrid.RenderDoc/Veldrid.RenderDoc.csproj" />
+        <Project Path="veldrid2/src/Veldrid.SDL2/Veldrid.SDL2.csproj" />
+        <Project Path="veldrid2/src/Veldrid.StartupUtilities/Veldrid.StartupUtilities.csproj" />
+        <Project Path="veldrid2/src/Veldrid.Utilities/Veldrid.Utilities.csproj" />
+        <Project Path="veldrid2/src/Veldrid/Veldrid.csproj" />
+    </Folder>
     <Project Path="BetaSharp.Client/BetaSharp.Client.csproj" Id="18a43ffb-2a42-4f5b-8b07-e95b636625ac">
     </Project>
     <Project Path="BetaSharp.Server/BetaSharp.Server.csproj" Id="20d1aaba-1a9e-48c4-9d0e-9417ba21e63e">

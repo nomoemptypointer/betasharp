@@ -9,7 +9,7 @@ using BetaSharp.Items;
 using BetaSharp.Util;
 using BetaSharp.Util.Maths;
 using java.awt;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Guis;
 

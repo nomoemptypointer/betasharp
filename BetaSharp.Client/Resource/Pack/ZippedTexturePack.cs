@@ -1,6 +1,6 @@
 using System.IO.Compression;
 using BetaSharp.Client.Rendering.Core;
-using Silk.NET.OpenGL.Legacy;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

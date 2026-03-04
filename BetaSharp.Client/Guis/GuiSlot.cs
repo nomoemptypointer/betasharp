@@ -1,6 +1,6 @@
 using BetaSharp.Client.Input;
 using BetaSharp.Client.Rendering.Core;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Guis;
 

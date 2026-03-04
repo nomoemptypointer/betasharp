@@ -2,7 +2,7 @@ using BetaSharp.Client.Options;
 using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Entities;
 using java.util;
-using Silk.NET.OpenGL.Legacy;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

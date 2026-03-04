@@ -4,7 +4,7 @@ using BetaSharp.Client.Rendering.Core;
 using java.awt;
 using java.awt.datatransfer;
 using java.util;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Guis;
 

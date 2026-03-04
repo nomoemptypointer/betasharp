@@ -33,7 +33,7 @@ using BetaSharp.Worlds.Colors;
 using BetaSharp.Worlds.Storage;
 using ImGuiNET;
 using Silk.NET.Input;
-using Silk.NET.OpenGL.Legacy;
+
 using Silk.NET.OpenGL.Legacy.Extensions.ImGui;
 
 namespace BetaSharp.Client;

@@ -5,7 +5,7 @@ using BetaSharp.Inventorys;
 using BetaSharp.Items;
 using BetaSharp.Screens;
 using BetaSharp.Screens.Slots;
-using Silk.NET.OpenGL.Legacy;
+
 
 namespace BetaSharp.Client.Guis;
 

@@ -1,7 +1,6 @@
 using BetaSharp.Client.Rendering.Core;
 using BetaSharp.Util.Maths;
 using BetaSharp.Worlds;
-using Silk.NET.OpenGL.Legacy;
 
 namespace BetaSharp.Client.Entities.FX;
 
