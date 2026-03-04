@@ -332,7 +332,7 @@ public static unsafe class Display
     {
         if (isFullscreen())
             return _currentMode.getHeight();
-        return _window?.Hei ?? _currentMode.getHeight();
+        return _window?.Height ?? _currentMode.getHeight();
     }
 
     /// <summary>
