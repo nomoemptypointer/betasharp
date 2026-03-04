@@ -1,4 +1,7 @@
 using Silk.NET.Maths;
+using Veldrid;
+using Veldrid.Sdl2;
+using Veldrid.StartupUtilities;
 
 namespace BetaSharp.Client;
 
@@ -9,9 +12,7 @@ namespace BetaSharp.Client;
 public static unsafe class Display
 {
     private static readonly object _lock = new();
-    private static IWindow? _window;
-    private static GL? _gl;
-    private static readonly Glfw? _glfw;
+    private static Sdl2Window? _window;
 
     // Display properties
     private static DisplayMode _currentMode;
@@ -33,18 +34,7 @@ public static unsafe class Display
 
     static Display()
     {
-        // Initialize GLFW
-        _glfw = Glfw.GetApi();
-        if (!_glfw.Init())
-        {
-            throw new Exception("Failed to initialize GLFW");
-        }
-
-        // Get initial display mode (primary monitor)
-        var monitor = _glfw.GetPrimaryMonitor();
-        var videoMode = _glfw.GetVideoMode(monitor);
-        _initialMode = new DisplayMode(videoMode->Width, videoMode->Height,
-            videoMode->RefreshRate, videoMode->RedBits + videoMode->GreenBits + videoMode->BlueBits);
+        _initialMode = new DisplayMode(1920, 1080); // TODO: Lurk online for methods of getting arguments for the desktop display mode
         _currentMode = _initialMode;
     }
 
@@ -80,21 +70,12 @@ public static unsafe class Display
     {
         lock (_lock)
         {
-            var modes = new List<DisplayMode>();
-            var monitor = _glfw!.GetPrimaryMonitor();
-
-            unsafe
+            var modes = new List<DisplayMode>
             {
-                int count;
-                var videoModes = _glfw.GetVideoModes(monitor, out count);
-
-                for (int i = 0; i < count; i++)
-                {
-                    var mode = videoModes[i];
-                    int bpp = mode.RedBits + mode.GreenBits + mode.BlueBits;
-                    modes.Add(new DisplayMode(mode.Width, mode.Height, mode.RefreshRate, bpp));
-                }
-            }
+                // TODO: Ensure the initial mode is always available
+                // TODO: Remove Sdl2 migration workaround
+                _initialMode
+            };
 
             // Remove duplicates
             return [.. modes.Distinct()];
@@ -124,7 +105,8 @@ public static unsafe class Display
             }
             else
             {
-                _window!.Size = new Vector2D<int>(mode.getWidth(), mode.getHeight());
+                _window!.X = mode.getWidth();
+                _window!.Y = mode.getHeight();
             }
         }
     }
@@ -176,7 +158,8 @@ public static unsafe class Display
             else
             {
                 resetDisplayMode();
-                _window!.Size = new Vector2D<int>(mode.getWidth(), mode.getHeight());
+                _window!.X = mode.getWidth();
+                _window!.Y = mode.getHeight();
             }
         }
     }
@@ -188,39 +171,27 @@ public static unsafe class Display
             throw new InvalidOperationException("Only modes from getAvailableDisplayModes() can be used for fullscreen");
         }
 
-        if (_window != null && _glfw != null)
+        if (_window != null)
         {
-            var monitor = _glfw.GetPrimaryMonitor();
-            unsafe
-            {
-                _glfw.SetWindowMonitor(
-                    (WindowHandle*)_window.Handle,
-                    monitor,
-                    0, 0,
-                    _currentMode.getWidth(),
-                    _currentMode.getHeight(),
-                    _currentMode.getFrequency()
-                );
-            }
+            //_glfw.SetWindowMonitor(
+            //    (WindowHandle*)_window.Handle,
+            //    monitor,
+            //    0, 0,
+            //    _currentMode.getWidth(),
+            //    _currentMode.getHeight(),
+            //    _currentMode.getFrequency()
+            //);
+            _window!.X = _currentMode.getWidth();
+            _window!.Y = _currentMode.getHeight();
         }
     }
 
     private static void resetDisplayMode()
     {
-        if (_window != null && _glfw != null)
+        if (_window != null)
         {
-            unsafe
-            {
-                _glfw.SetWindowMonitor(
-                    (WindowHandle*)_window.Handle,
-                    null,
-                    getWindowX(),
-                    getWindowY(),
-                    _currentMode.getWidth(),
-                    _currentMode.getHeight(),
-                    0
-                );
-            }
+            _window!.X = _currentMode.getWidth();
+            _window!.Y = _currentMode.getHeight();
         }
     }
 
@@ -267,7 +238,7 @@ public static unsafe class Display
         {
             if (!isCreated())
                 throw new InvalidOperationException("Cannot determine minimized state of uncreated window");
-            return _window!.IsVisible;
+            return _window!.Visible;
         }
     }
 
@@ -280,7 +251,7 @@ public static unsafe class Display
         {
             if (!isCreated())
                 throw new InvalidOperationException("Cannot determine focused state of uncreated window");
-            return _glfw!.GetWindowAttrib((WindowHandle*)_window!.Handle, WindowAttributeGetter.Focused);
+            return _window!.Focused;
         }
     }
 
@@ -294,9 +265,10 @@ public static unsafe class Display
             _x = x;
             _y = y;
 
-            if (isCreated() && !isFullscreen())
+            if (isCreated() && !isFullscreen()) // TODO: Wtf is this even used for?
             {
-                _window!.Position = new Vector2D<int>(getWindowX(), getWindowY());
+                _window!.X = getWindowX();
+                _window!.Y = getWindowY();
             }
         }
     }
@@ -330,7 +302,7 @@ public static unsafe class Display
     {
         if (isFullscreen())
             return 0;
-        return _window?.Position.X ?? 0;
+        return _window?.X ?? 0;
     }
 
     /// <summary>
@@ -340,7 +312,7 @@ public static unsafe class Display
     {
         if (isFullscreen())
             return 0;
-        return _window?.Position.Y ?? 0;
+        return _window?.Y ?? 0;
     }
 
     /// <summary>
@@ -350,7 +322,7 @@ public static unsafe class Display
     {
         if (isFullscreen())
             return _currentMode.getWidth();
-        return _window?.Size.X ?? _currentMode.getWidth();
+        return _window?.Width ?? _currentMode.getWidth();
     }
 
     /// <summary>
@@ -360,7 +332,7 @@ public static unsafe class Display
     {
         if (isFullscreen())
             return _currentMode.getHeight();
-        return _window?.Size.Y ?? _currentMode.getHeight();
+        return _window?.Hei ?? _currentMode.getHeight();
     }
 
     /// <summary>
@@ -402,12 +374,13 @@ public static unsafe class Display
     /// </summary>
     public static void setSwapInterval(int value)
     {
-        lock (_lock)
-        {
-            _swapInterval = value;
-            if (isCreated())
-                _window!.VSync = value > 0;
-        }
+        // TODO: Let VPipeline decide (?)
+        //lock (_lock)
+        //{
+        //    _swapInterval = value;
+        //    if (isCreated())
+        //        _window!.VSync = value > 0;
+        //}
     }
 
     /// <summary>
@@ -415,7 +388,8 @@ public static unsafe class Display
     /// </summary>
     public static void setVSyncEnabled(bool sync)
     {
-        setSwapInterval(sync ? 1 : 0);
+        // TODO: Let VPipeline decide (?)
+        //setSwapInterval(sync ? 1 : 0);
     }
 
     /// <summary>
@@ -428,41 +402,42 @@ public static unsafe class Display
             if (isCreated())
                 throw new InvalidOperationException("Only one LWJGL context may be instantiated at any one time.");
 
-            var options = WindowOptions.Default;
-            options.Size = new Vector2D<int>(_currentMode.getWidth(), _currentMode.getHeight());
-            options.Title = _title;
-            options.WindowBorder = _resizable ? WindowBorder.Resizable : WindowBorder.Fixed;
-            options.VSync = _swapInterval > 0;
-            options.IsVisible = true;
-            options.Samples = MSAA_Samples;
-            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Compatability, ContextFlags.Default, new APIVersion(3, 3));
+            var options = new WindowCreateInfo
+            {
+                WindowWidth = _currentMode.getWidth(),
+                WindowHeight = _currentMode.getHeight(),
+                WindowTitle = _title,
+                //options.WindowBorder = _resizable ? WindowBorder.Resizable : WindowBorder.Fixed; TODO: Reimplement _resizable
+                WindowInitialState = WindowState.Normal
+                //options.VSync = _swapInterval > 0; TODO: Let VPipeline decide
+                //options.Samples = MSAA_Samples; TODO (Pri:Last): Reimplement MSAA_Samples (Veldrid)
+            };
 
             if (_x >= 0 && _y >= 0)
-                options.Position = new Vector2D<int>(_x, _y);
+            {
+                options.X = _x;
+                options.Y = _y;
+            }
 
-            _window = Window.Create(options);
+            _window = VeldridStartup.CreateWindow(options);
 
-            _window.Load += onLoad;
-            _window.Resize += onResize;
+            _window.Shown += onLoad; // TODO: Check if "Shown" is correct
+            _window.Resized += onResize;
             _window.Closing += onClosing;
 
             if (isFullscreen())
             {
                 switchDisplayMode();
             }
-
-            _window.Initialize();
         }
     }
 
     private static void onLoad()
     {
-        _gl = GL.GetApi(_window);
-        _gl.ClearColor(_r, _g, _b, 1.0f);
-        _gl.Enable(EnableCap.Multisample);
+        //_gl.Enable(EnableCap.Multisample);
     }
 
-    private static void onResize(Vector2D<int> size)
+    private static void onResize()
     {
         _wasResized = true;
     }
@@ -482,7 +457,7 @@ public static unsafe class Display
             if (!isCreated())
                 throw new InvalidOperationException("Display not created");
 
-            _window!.DoEvents();
+            _window!.PumpEvents(); // TODO: Check if capturing output of PumpEvents() is necessary 
         }
     }
 
@@ -491,13 +466,15 @@ public static unsafe class Display
     /// </summary>
     public static void swapBuffers()
     {
-        lock (_lock)
-        {
-            if (!isCreated())
-                throw new InvalidOperationException("Display not created");
+        // Note: Veldrid automatically swaps buffers at the end of each frame, so this is a no-op.
 
-            _window!.SwapBuffers();
-        }
+        //lock (_lock)
+        //{
+        //    if (!isCreated())
+        //        throw new InvalidOperationException("Display not created");
+
+        //    _window!.SwapBuffers();
+        //}
     }
 
     /// <summary>
@@ -520,10 +497,10 @@ public static unsafe class Display
 
             _wasResized = false;
 
-            if (_window!.IsVisible)
-            {
-                swapBuffers();
-            }
+            //if (_window!.Visible)
+            //{
+            //    swapBuffers();
+            //}
 
             if (processMessages)
             {
@@ -542,12 +519,9 @@ public static unsafe class Display
             if (!isCreated())
                 return;
 
-            _gl?.Dispose();
             _window?.Close();
-            _window?.Dispose();
 
             _window = null;
-            _gl = null;
             _closeRequested = false;
             _wasResized = false;
 
@@ -555,30 +529,7 @@ public static unsafe class Display
         }
     }
 
-    /// <summary>
-    /// Gets the OpenGL context.
-    /// </summary>
-    public static GL? getGL()
-    {
-        return _gl;
-    }
-
-    public static WindowHandle* getWindowHandle()
-    {
-        if (!isCreated())
-        {
-            throw new InvalidOperationException("Cannot get WindowHandle of uncreated Display");
-        }
-
-        return (WindowHandle*)_window!.Handle;
-    }
-
-    public static Glfw getGlfw()
-    {
-        return _glfw!;
-    }
-
-    public static IWindow getWindow()
+    public static Sdl2Window getWindow()
     {
         return _window!;
     }
